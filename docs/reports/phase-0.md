@@ -2,14 +2,14 @@
 
 ## Current status
 
-Phase 0 is in progress until the latest fixes have run in GitHub Actions and their results are recorded. No Phase 1 work is approved by completion of this phase.
+Phase 0 foundation is complete for its approved scope, with the limitations below. This does not approve Phase 1.
 
 - VERIFIED: Repository agent rules, workflows and six project skills exist; all six appeared in a Codex session's skill inventory. Metadata structure is checked by the context gate; behavior and future discovery remain subject to the agent environment.
 - VERIFIED: Gitleaks 8.30.1 Windows archive was checked against the official SHA-256 release checksum before installation. Synthetic clean, positive, redaction and invalid-configuration cases passed. Project tree and available history were scanned locally without findings after excluding `.tools/`, which must not contain project source or secrets.
 - VERIFIED FROM USER-PROVIDED SCREENSHOT: GitHub Actions Harness run #2 succeeded, including context, Harness tests and Gitleaks installation, verification and scans. The screenshot did not show the commit SHA or detailed logs. The user subsequently reported another successful CI run.
 - VERIFIED: Superpowers 7.0.2 was installed via Codex CLI into its user cache. Current sandboxed `codex plugin list --json` reports no plugins, so active plugin discovery is NOT VERIFIED. Project-specific skills are stored in this repository independently.
 - VERIFIED: `git diff` against a baseline could miss a staged change if the worktree was restored to baseline. The updated checker compares baseline, staged and unstaged changes; regression tests cover the case. A baseline-sourced policy cannot be replaced by an uncommitted policy edit.
-- NOT RUN: GitHub Actions after the latest scope and metadata changes; both workflows parse as YAML locally, which is not an execution. Manual `Task scope verification` is explicitly invoked per task and requires a previously approved baseline and policy; the normal Harness workflow does not assert task scope.
+- VERIFIED FROM USER-PROVIDED SCREENSHOTS: Harness run #4 succeeded on commit `bcf1072`; manual `Task scope verification` run #1 succeeded on commit `5608483`. The screenshots show successful jobs, not detailed logs or scope-workflow inputs. The smoke invocation is intended to compare a commit to itself and therefore does not establish detection of an out-of-scope change remotely; positive and negative cases were exercised locally. Manual scope verification is explicitly invoked per task and requires a previously approved baseline and policy; the normal Harness workflow does not assert task scope.
 - NOT VERIFIED: Codex hooks and GitHub branch protection. No PR or merge test is required by the user. Optional hooks are not a prerequisite for running local checks; CI configuration alone does not enforce a merge gate.
 - BLOCKED IN CURRENT ENVIRONMENT: Docker engine access denied and Docker config inaccessible. Postman CLI was not found on PATH. No application exists, so application build, unit/integration tests, application architecture and dependency audit are NOT APPLICABLE in Phase 0.
 
