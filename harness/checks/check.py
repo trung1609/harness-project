@@ -1,7 +1,8 @@
 """Small, dependency-free checks; failures and missing inputs return nonzero."""
 import argparse
 import json
-from pathlib import Path, PurePosixPath
+from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -33,7 +34,17 @@ def changed_paths(root, baseline):
             raise RuntimeError(result.stderr.decode('utf-8', errors='replace').strip())
         return {item.decode('utf-8', errors='surrogateescape') for item in result.stdout.split(b'\0') if item}
     git('rev-parse', '--verify', baseline + '^{commit}')
-    return sorted(git('diff', '--name-only', '--no-renames', '-z', baseline, '--') | git('ls-files', '--others', '--exclude-standard', '-z'))
+    return sorted(git('diff', '--name-only', '--no-renames', '-z', baseline, '--') | git('diff', '--cached', '--name-only', '--no-renames', '-z', baseline, '--') | git('diff', '--name-only', '--no-renames', '-z', '--') | git('ls-files', '--others', '--exclude-standard', '-z'))
+
+
+def read_baseline_policy(root, baseline, path):
+    validate_scope([path])
+    if path.endswith('/'):
+        raise ValueError('policy must be a file path')
+    result = subprocess.run(['git', '-C', str(root), 'show', baseline + ':' + path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode:
+        raise RuntimeError('could not read policy from baseline: ' + result.stderr.decode('utf-8', errors='replace').strip())
+    return json.loads(result.stdout.decode('utf-8'))
 
 
 def validate_state(state):
@@ -52,7 +63,24 @@ def validate_state(state):
 
 
 def validate_docs(root):
-    return [f'missing {name}' for name in REQUIRED_DOCS + REQUIRED_AGENT_FILES if not (root / name).is_file()]
+    errors = [f'missing {name}' for name in REQUIRED_DOCS + REQUIRED_AGENT_FILES if not (root / name).is_file()]
+    for name in REQUIRED_AGENT_FILES:
+        path = root / name
+        if path.name == 'SKILL.md' and path.is_file():
+            errors.extend(f'{name}: {error}' for error in validate_skill(path))
+    return errors
+
+
+def validate_skill(path):
+    # Project skills deliberately use this small, unquoted YAML subset.
+    lines = path.read_text(encoding='utf-8').splitlines()
+    if len(lines) < 4 or lines[0] != '---' or lines[3] != '---':
+        return ['expected name and description frontmatter']
+    name = re.fullmatch(r'name: ([a-z0-9]+(?:-[a-z0-9]+)*)', lines[1])
+    description = re.fullmatch(r'description: ([^\[\]{}#"\'\r\n]+)', lines[2])
+    if not name or name.group(1) != path.parent.name or not description or not description.group(1).strip() or ': ' in description.group(1):
+        return ['invalid name or description frontmatter']
+    return []
 
 
 def main():
@@ -61,7 +89,9 @@ def main():
     sub.add_parser('context')
     scope = sub.add_parser('scope')
     scope.add_argument('--base', required=True)
-    scope.add_argument('--policy', required=True, type=Path)
+    policies = scope.add_mutually_exclusive_group(required=True)
+    policies.add_argument('--policy', type=Path)
+    policies.add_argument('--policy-from-base')
     args = parser.parse_args()
     try:
         if args.command == 'context':
@@ -70,7 +100,7 @@ def main():
             if state_file.is_file():
                 errors.extend(validate_state(json.loads(state_file.read_text(encoding='utf-8'))))
         else:
-            policy = json.loads(args.policy.read_text(encoding='utf-8'))
+            policy = read_baseline_policy(ROOT, args.base, args.policy_from_base) if args.policy_from_base else json.loads(args.policy.read_text(encoding='utf-8'))
             if not isinstance(policy, dict):
                 raise ValueError('policy must be an object')
             errors = ['out of scope: ' + p for p in out_of_scope(changed_paths(ROOT, args.base), policy.get('allowed_paths'))]
