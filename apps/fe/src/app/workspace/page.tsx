@@ -526,50 +526,55 @@ function WorkspaceContent() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-screen-2xl items-center justify-between px-4 py-3.5 sm:px-6">
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-600/20">
+        <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-2 px-3 py-3 sm:px-6 sm:py-3.5">
+          <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-600/20">
               <BookOpen className="h-4.5 w-4.5" strokeWidth={1.75} />
             </span>
-            <div>
-              <span className="block text-base font-semibold tracking-tight text-slate-900">
-                Không gian làm việc cá nhân
+            <div className="min-w-0">
+              <span className="block truncate text-sm font-semibold tracking-tight text-slate-900 sm:text-base">
+                <span className="sm:hidden">Sổ tay cá nhân</span>
+                <span className="hidden sm:inline">Không gian làm việc cá nhân</span>
               </span>
-              <span className="block text-xs text-slate-500">
+              <span className="hidden text-xs text-slate-500 sm:block">
                 Lịch tuần &amp; ghi chú theo giờ Việt Nam
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
             <button
               type="button"
               onClick={() => openCreateModalForDate()}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm shadow-blue-600/20 transition-all hover:bg-blue-700 active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-blue-600 px-2.5 py-2 text-xs font-medium text-white shadow-sm shadow-blue-600/20 transition-all hover:bg-blue-700 active:scale-[0.98] sm:px-3.5 sm:text-sm"
             >
-              <Plus className="h-4 w-4" strokeWidth={2} />
-              Thêm công việc
+              <Plus className="h-4 w-4 shrink-0" strokeWidth={2} />
+              <span className="sm:hidden">Thêm</span>
+              <span className="hidden sm:inline">Thêm công việc</span>
             </button>
             <Link
               href="/support"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+              aria-label="Hỗ trợ"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200 bg-white p-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 sm:px-3 sm:py-2"
             >
-              <LifeBuoy className="h-4 w-4 text-blue-600" strokeWidth={1.75} />
+              <LifeBuoy className="h-4 w-4 shrink-0 text-blue-600" strokeWidth={1.75} />
               <span className="hidden sm:inline">Hỗ trợ</span>
             </Link>
             <button
               type="button"
+              aria-label="Đổi mật khẩu"
               onClick={() => setChangePasswordOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200 bg-white p-2 text-sm font-medium text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:px-3 sm:py-2"
             >
-              <KeyRound className="h-4 w-4" strokeWidth={1.75} />
+              <KeyRound className="h-4 w-4 shrink-0" strokeWidth={1.75} />
               <span className="hidden sm:inline">Đổi mật khẩu</span>
             </button>
             <button
               type="button"
+              aria-label="Đăng xuất"
               onClick={() => setSignOutConfirmOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200 bg-white p-2 text-sm font-medium text-slate-700 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 sm:px-3 sm:py-2"
             >
-              <LogOut className="h-4 w-4" strokeWidth={1.75} />
+              <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.75} />
               <span className="hidden sm:inline">Đăng xuất</span>
             </button>
           </div>
@@ -618,67 +623,69 @@ function WorkspaceContent() {
         </section>
 
         {/* Tabs & filter */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-xs">
-            <button
-              type="button"
-              onClick={() => setTab('timetable')}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                tab === 'timetable'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <CalendarDays className="h-4 w-4" strokeWidth={1.75} />
-              Lịch tuần
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('tasks')}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                tab === 'tasks'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <CheckSquare className="h-4 w-4" strokeWidth={1.75} />
-              Công việc
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('notes')}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                tab === 'notes'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <FileText className="h-4 w-4" strokeWidth={1.75} />
-              Ghi chú
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('archive')}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                tab === 'archive'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <Archive className="h-4 w-4" strokeWidth={1.75} />
-              Kho lưu trữ
-              {archivedList.totalItems > 0 && (
-                <span
-                  className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
-                    tab === 'archive'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-slate-100 text-slate-600'
-                  }`}
-                >
-                  {archivedList.totalItems}
-                </span>
-              )}
-            </button>
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="w-full overflow-x-auto sm:w-auto">
+            <div className="inline-flex min-w-max rounded-xl border border-slate-200 bg-white p-1 shadow-xs">
+              <button
+                type="button"
+                onClick={() => setTab('timetable')}
+                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-all sm:px-4 sm:text-sm ${
+                  tab === 'timetable'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                <CalendarDays className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                Lịch tuần
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab('tasks')}
+                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-all sm:px-4 sm:text-sm ${
+                  tab === 'tasks'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                <CheckSquare className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                Công việc
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab('notes')}
+                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-all sm:px-4 sm:text-sm ${
+                  tab === 'notes'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                <FileText className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                Ghi chú
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab('archive')}
+                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-all sm:px-4 sm:text-sm ${
+                  tab === 'archive'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                <Archive className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                Kho lưu trữ
+                {archivedList.totalItems > 0 && (
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
+                      tab === 'archive'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    {archivedList.totalItems}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
 
           {tab !== 'notes' && tab !== 'archive' && (

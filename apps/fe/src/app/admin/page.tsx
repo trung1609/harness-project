@@ -337,7 +337,7 @@ export default function AdminPage() {
                 key={item.id}
                 type="button"
                 onClick={() => setSection(item.id)}
-                className={`flex shrink-0 items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors ${
+                className={`flex shrink-0 items-center justify-between gap-2 whitespace-nowrap rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors ${
                   active
                     ? 'bg-blue-50 text-blue-700'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -376,7 +376,7 @@ export default function AdminPage() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-5 sm:p-8">
+      <main className="flex-1 p-4 sm:p-8">
         <div className="mx-auto max-w-6xl space-y-6">
           <header className="flex flex-wrap items-center justify-between gap-3">
             <div>
