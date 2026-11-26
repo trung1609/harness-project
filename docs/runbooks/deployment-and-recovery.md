@@ -76,3 +76,23 @@ Restore into a separate disposable database and verify schema migrations, tasks,
 pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$RESTORE_DATABASE_URL" backup.dump
 npm run ops:verify-restore --workspace apps/be -- --database-url "$RESTORE_DATABASE_URL"
 ```
+
+## 6. Always-On Backend Option: Railway (Zero NestJS Cold Start)
+
+To eliminate Vercel Function cold starts for NestJS while keeping Next.js (`apps/fe`) on Vercel:
+
+1. **Create a Railway service** from the GitHub repository with **Root Directory** set to `apps/be` and select the **Southeast Asia (Singapore)** region.
+2. Railway reads `apps/be/railway.json`:
+   - **Build Command:** `npm run build`
+   - **Start Command:** `node dist/db/migrate-cli.js --if-env && node dist/main.js` (runs pending migrations on startup, then starts the persistent NestJS server on Railway's `PORT`)
+   - **Healthcheck:** `/api/v1/health`
+3. **Environment variables on Railway (`apps/be`):**
+   - `NODE_ENV=production`
+   - `APP_BASE_URL=https://personal-notebook-web.vercel.app`
+   - `DATABASE_URL` (Neon PostgreSQL with `?sslmode=verify-full`)
+   - `REDIS_URL` (Upstash Redis `rediss://...`)
+   - `CSRF_SECRET`, `JWT_SECRET`
+   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+   - `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`
+4. **Point Frontend (`apps/fe` on Vercel) to Railway:**
+   - Update `API_ORIGIN` in Vercel (`personal-notebook-web`) to the Railway public URL (`https://<service>.up.railway.app`) and redeploy `personal-notebook-web`.
