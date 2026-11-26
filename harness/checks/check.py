@@ -7,6 +7,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_DOCS = ('AGENTS.md', 'README.md', 'docs/PROJECT.md', 'docs/ROADMAP.md', 'docs/PROGRESS.md', 'docs/CONVENTIONS.md', 'docs/SECURITY.md', 'harness/README.md', 'harness/policy/state.json')
+REQUIRED_AGENT_FILES = ('.agents/rules/core.md', '.agents/rules/quality-gates.md', '.agents/workflows/task.md', '.agents/workflows/phase-gates.md', *('.agents/skills/' + name + '/SKILL.md' for name in ('project-requirements', 'project-architecture', 'project-planning', 'project-implementation', 'project-review', 'project-harness-improvement')))
 
 
 def validate_scope(paths):
@@ -51,7 +52,7 @@ def validate_state(state):
 
 
 def validate_docs(root):
-    return [f'missing {name}' for name in REQUIRED_DOCS if not (root / name).is_file()]
+    return [f'missing {name}' for name in REQUIRED_DOCS + REQUIRED_AGENT_FILES if not (root / name).is_file()]
 
 
 def main():

@@ -56,6 +56,17 @@ class StateTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             self.assertTrue(check.validate_docs(pathlib.Path(directory)))
 
+    def test_missing_agent_skill_is_detected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            for name in check.REQUIRED_DOCS + check.REQUIRED_AGENT_FILES:
+                target = root / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.touch()
+            self.assertEqual(check.validate_docs(root), [])
+            (root / '.agents/skills/project-review/SKILL.md').unlink()
+            self.assertIn('missing .agents/skills/project-review/SKILL.md', check.validate_docs(root))
+
 
 if __name__ == '__main__':
     unittest.main()

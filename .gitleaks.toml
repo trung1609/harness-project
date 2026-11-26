@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Locally downloaded development tools, not project source"
+paths = ['''(^|/)\.tools/''']

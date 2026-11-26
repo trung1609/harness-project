@@ -1,9 +1,9 @@
 {
   "phase": "Phase 0 — Harness Foundation",
-  "task": "Phase 0 implementation and verification",
+  "task": "Phase 0: repository agent skills, rules, and workflows",
   "status": "BLOCKED",
-  "completed": ["Read-only environment survey", "Phase 0 plan approved by user", "Git initialized", "Harness checks and tests implemented"],
-  "blocked": ["No commit baseline exists for project scope verification", "Secret scanner is not configured or verified", "Remote CI and branch protection are not verified"],
-  "issues": ["Docker daemon is unreachable in the current session", "Postman CLI is not on the current PATH", "Superpowers is available in the catalog but not installed", "Hooks are not verified"],
+  "completed": ["Read-only environment survey", "Phase 0 plan approved by user", "Git initialized and baseline commit exists", "Harness checks and tests implemented", "Superpowers 7.0.2 installed through Codex CLI", "Gitleaks 8.30.1 installed and verified locally", "Repository agent layer implemented and locally validated"],
+  "blocked": ["Updated secret-scanning workflow has not run on GitHub"],
+  "issues": ["User reports earlier CI passed; remote run has not been independently inspected", "Agent skill discovery and Superpowers availability in a new session have not been verified", "Docker daemon was unreachable in the prior session", "Postman CLI was not on the prior PATH", "Hooks are not verified"],
   "evidence": ["docs/reports/phase-0.md"]
 }
