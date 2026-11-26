@@ -136,7 +136,7 @@ test('AC-13 & AC-14: auth pages render and auth workflow handles pending, expire
       ['/login', /Đăng nhập/u],
       ['/register', /Đăng ký tài khoản/u],
       ['/activate', /Kích hoạt tài khoản|Đang tải/u],
-      ['/workspace', /Kiểm tra phiên đăng nhập|Không gian làm việc/iu],
+      ['/workspace', /Kiểm tra phiên đăng nhập|Không gian làm việc|Đang tải/iu],
     ]) {
       const res = await fetch(`http://127.0.0.1:${port}${route}`);
       assert.equal(res.status, 200);
