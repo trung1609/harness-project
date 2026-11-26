@@ -53,6 +53,7 @@ async function runSingleFlightRefresh(
     inflightRefresh = fetchFn(`${baseUrl}/auth/session-refreshes`, {
       method: 'POST',
       credentials: 'include',
+      cache: 'no-store',
       headers: csrf ? { 'X-CSRF-Token': csrf } : {},
     })
       .then((res) => res.ok)

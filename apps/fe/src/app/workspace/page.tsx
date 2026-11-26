@@ -270,6 +270,17 @@ function WorkspaceContent() {
     weekStart,
   ]);
 
+  // Proactive silent refresh every 12 minutes (before 15-minute access token expiry)
+  useEffect(() => {
+    if (sessionState !== 'ready') return;
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        void authApi.checkProtectedSession().catch(() => {});
+      }
+    }, 12 * 60 * 1000);
+    return () => window.clearInterval(intervalId);
+  }, [sessionState]);
+
   async function refreshTasksViews() {
     await Promise.all([
       loadTimetable(weekStart),
