@@ -11,8 +11,10 @@ export class ResourceNotFoundError extends Error {
   }
 }
 
+const ARCHIVE_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+
 /**
- * Application service for owned notes CRUD and paginated listing.
+ * Application service for owned notes CRUD, 30-day archive/restore, and paginated listing.
  */
 export class NotesService {
   constructor(private readonly notes: NotesRepository) {}
@@ -62,10 +64,54 @@ export class NotesService {
     return updated;
   }
 
-  async deleteNote(ownerId: string, noteId: string): Promise<void> {
-    const deleted = await this.notes.deleteOwned(ownerId, noteId);
+  async deleteNote(
+    ownerId: string,
+    noteId: string,
+    now: Date = new Date(),
+  ): Promise<void> {
+    const deleted = await this.notes.deleteOwned(ownerId, noteId, now);
     if (!deleted) {
       throw new ResourceNotFoundError('Note');
     }
+  }
+
+  async listArchivedNotes(
+    ownerId: string,
+    rawPage?: unknown,
+    rawPageSize?: unknown,
+    now: Date = new Date(),
+  ): Promise<PaginatedResult<NoteRecord>> {
+    await this.purgeExpiredNotes(now);
+    const pagination = parsePagination(rawPage, rawPageSize);
+    const { items, totalItems } = await this.notes.listArchivedOwned(
+      ownerId,
+      pagination,
+    );
+    return {
+      items,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      totalItems,
+    };
+  }
+
+  async restoreNote(ownerId: string, noteId: string): Promise<NoteRecord> {
+    const restored = await this.notes.restoreOwned(ownerId, noteId);
+    if (!restored) {
+      throw new ResourceNotFoundError('Note');
+    }
+    return restored;
+  }
+
+  async permanentlyDeleteNote(ownerId: string, noteId: string): Promise<void> {
+    const deleted = await this.notes.permanentlyDeleteOwned(ownerId, noteId);
+    if (!deleted) {
+      throw new ResourceNotFoundError('Note');
+    }
+  }
+
+  async purgeExpiredNotes(now: Date = new Date()): Promise<number> {
+    const cutoff = new Date(now.getTime() - ARCHIVE_RETENTION_MS);
+    return this.notes.purgeExpiredArchived(cutoff);
   }
 }

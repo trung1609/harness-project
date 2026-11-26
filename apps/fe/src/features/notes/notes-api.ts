@@ -7,6 +7,7 @@ export interface NoteItem {
   body: string;
   startsAt: string;
   updatedAt: string;
+  deletedAt?: string | null;
 }
 
 export interface PaginatedResponse<T> {
@@ -51,6 +52,24 @@ export function createNotesApiClient(
     },
     deleteNote(noteId: string) {
       return apiFetch<void>(`/notes/${encodeURIComponent(noteId)}`, {
+        ...baseOptions,
+        method: 'DELETE',
+      });
+    },
+    listArchivedNotes(page = 1, pageSize = 10) {
+      return apiFetch<PaginatedResponse<NoteItem>>(
+        `/notes/archived?page=${page}&pageSize=${pageSize}`,
+        { ...baseOptions, method: 'GET' },
+      );
+    },
+    restoreNote(noteId: string) {
+      return apiFetch<NoteItem>(`/notes/${encodeURIComponent(noteId)}/restore`, {
+        ...baseOptions,
+        method: 'POST',
+      });
+    },
+    permanentlyDeleteNote(noteId: string) {
+      return apiFetch<void>(`/notes/${encodeURIComponent(noteId)}/permanent`, {
         ...baseOptions,
         method: 'DELETE',
       });

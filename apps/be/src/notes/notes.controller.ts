@@ -100,6 +100,26 @@ export class NotesController {
     });
   }
 
+  @Get('archived')
+  async listArchived(
+    @Req() req: AuthenticatedRequest,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    try {
+      return await this.notesService.listArchivedNotes(
+        req.auth!.account.id,
+        page,
+        pageSize,
+      );
+    } catch (error: unknown) {
+      if (error instanceof InvalidPaginationError) {
+        throw new ValidationAppException(error.message);
+      }
+      throw error;
+    }
+  }
+
   @Get(':noteId')
   async getOne(
     @Req() req: AuthenticatedRequest,
@@ -160,6 +180,41 @@ export class NotesController {
   ): Promise<void> {
     try {
       await this.notesService.deleteNote(req.auth!.account.id, noteId);
+    } catch (error: unknown) {
+      if (error instanceof ResourceNotFoundError) {
+        throw new NotFoundAppException(error.message);
+      }
+      throw error;
+    }
+  }
+
+  @Post(':noteId/restore')
+  @HttpCode(HttpStatus.OK)
+  async restore(
+    @Req() req: AuthenticatedRequest,
+    @Param('noteId') noteId: string,
+  ) {
+    try {
+      return await this.notesService.restoreNote(req.auth!.account.id, noteId);
+    } catch (error: unknown) {
+      if (error instanceof ResourceNotFoundError) {
+        throw new NotFoundAppException(error.message);
+      }
+      throw error;
+    }
+  }
+
+  @Delete(':noteId/permanent')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async permanentlyDelete(
+    @Req() req: AuthenticatedRequest,
+    @Param('noteId') noteId: string,
+  ): Promise<void> {
+    try {
+      await this.notesService.permanentlyDeleteNote(
+        req.auth!.account.id,
+        noteId,
+      );
     } catch (error: unknown) {
       if (error instanceof ResourceNotFoundError) {
         throw new NotFoundAppException(error.message);

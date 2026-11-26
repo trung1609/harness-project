@@ -68,6 +68,22 @@ test('AC-04, AC-06, AC-07, AC-16, AC-18: owned notes CRUD, isolation, and pagina
       service.getNote(ownerA, created.id),
       ResourceNotFoundError,
     );
+
+    // Archived note appears in archive, can be restored, and expires after 30 days
+    const archived = await service.listArchivedNotes(ownerA);
+    assert.equal(archived.totalItems, 1);
+    assert.equal(archived.items[0].id, created.id);
+
+    const restored = await service.restoreNote(ownerA, created.id);
+    assert.equal(restored.id, created.id);
+    assert.equal(restored.deletedAt, null);
+    assert.equal((await service.listNotes(ownerA)).totalItems, 1);
+
+    // Soft-delete 31 days ago is auto-purged when listing archive
+    const thirtyOneDaysAgo = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000);
+    await service.deleteNote(ownerA, created.id, thirtyOneDaysAgo);
+    const afterPurge = await service.listArchivedNotes(ownerA);
+    assert.equal(afterPurge.totalItems, 0);
   } finally {
     await pool.end();
   }

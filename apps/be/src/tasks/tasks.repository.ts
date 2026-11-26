@@ -232,7 +232,8 @@ export class TasksRepository {
     const countResult = await this.pool.query<{ total: string }>(
       `SELECT COUNT(*)::text AS total
        FROM task_notes tn
-       WHERE tn.owner_id = $1 AND tn.task_id = $2`,
+       JOIN notes n ON n.owner_id = tn.owner_id AND n.id = tn.note_id
+       WHERE tn.owner_id = $1 AND tn.task_id = $2 AND n.deleted_at IS NULL`,
       [ownerId, taskId],
     );
     const totalItems = Number(countResult.rows[0].total);
@@ -241,7 +242,7 @@ export class TasksRepository {
       `SELECT n.id, n.owner_id, n.title, n.body, n.starts_at, n.updated_at
        FROM task_notes tn
        JOIN notes n ON n.owner_id = tn.owner_id AND n.id = tn.note_id
-       WHERE tn.owner_id = $1 AND tn.task_id = $2
+       WHERE tn.owner_id = $1 AND tn.task_id = $2 AND n.deleted_at IS NULL
        ORDER BY n.updated_at DESC, n.id ASC
        LIMIT $3 OFFSET $4`,
       [ownerId, taskId, pagination.limit, pagination.offset],

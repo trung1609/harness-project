@@ -9,6 +9,7 @@ export interface NoteRecord {
   body: string;
   startsAt: Date;
   updatedAt: Date;
+  deletedAt?: Date | null;
 }
 
 interface NoteRow {
@@ -18,6 +19,7 @@ interface NoteRow {
   body: string;
   starts_at: Date;
   updated_at: Date;
+  deleted_at?: Date | null;
 }
 
 function mapNoteRow(row: NoteRow): NoteRecord {
@@ -28,6 +30,7 @@ function mapNoteRow(row: NoteRow): NoteRecord {
     body: row.body,
     startsAt: row.starts_at,
     updatedAt: row.updated_at,
+    deletedAt: row.deleted_at ?? null,
   };
 }
 
@@ -53,9 +56,9 @@ export class NotesRepository {
 
   async findOwnedById(ownerId: string, noteId: string): Promise<NoteRecord | null> {
     const result = await this.pool.query<NoteRow>(
-      `SELECT id, owner_id, title, body, starts_at, updated_at
+      `SELECT id, owner_id, title, body, starts_at, updated_at, deleted_at
        FROM notes
-       WHERE owner_id = $1 AND id = $2`,
+       WHERE owner_id = $1 AND id = $2 AND deleted_at IS NULL`,
       [ownerId, noteId],
     );
     return result.rows[0] ? mapNoteRow(result.rows[0]) : null;
@@ -66,15 +69,15 @@ export class NotesRepository {
     pagination: PaginationParams,
   ): Promise<{ items: NoteRecord[]; totalItems: number }> {
     const countResult = await this.pool.query<{ total: string }>(
-      `SELECT COUNT(*)::text AS total FROM notes WHERE owner_id = $1`,
+      `SELECT COUNT(*)::text AS total FROM notes WHERE owner_id = $1 AND deleted_at IS NULL`,
       [ownerId],
     );
     const totalItems = Number(countResult.rows[0].total);
 
     const rowsResult = await this.pool.query<NoteRow>(
-      `SELECT id, owner_id, title, body, starts_at, updated_at
+      `SELECT id, owner_id, title, body, starts_at, updated_at, deleted_at
        FROM notes
-       WHERE owner_id = $1
+       WHERE owner_id = $1 AND deleted_at IS NULL
        ORDER BY updated_at DESC, id ASC
        LIMIT $2 OFFSET $3`,
       [ownerId, pagination.limit, pagination.offset],
@@ -97,8 +100,8 @@ export class NotesRepository {
            body = COALESCE($4, body),
            starts_at = COALESCE($5, starts_at),
            updated_at = NOW()
-       WHERE owner_id = $1 AND id = $2
-       RETURNING id, owner_id, title, body, starts_at, updated_at`,
+       WHERE owner_id = $1 AND id = $2 AND deleted_at IS NULL
+       RETURNING id, owner_id, title, body, starts_at, updated_at, deleted_at`,
       [
         ownerId,
         noteId,
@@ -110,11 +113,72 @@ export class NotesRepository {
     return result.rows[0] ? mapNoteRow(result.rows[0]) : null;
   }
 
-  async deleteOwned(ownerId: string, noteId: string): Promise<boolean> {
+  /**
+   * Soft-deletes a note into the archive (retained for 30 days).
+   */
+  async deleteOwned(ownerId: string, noteId: string, now: Date = new Date()): Promise<boolean> {
     const result = await this.pool.query(
-      `DELETE FROM notes WHERE owner_id = $1 AND id = $2`,
+      `UPDATE notes
+       SET deleted_at = $3
+       WHERE owner_id = $1 AND id = $2 AND deleted_at IS NULL`,
+      [ownerId, noteId, now],
+    );
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async listArchivedOwned(
+    ownerId: string,
+    pagination: PaginationParams,
+  ): Promise<{ items: NoteRecord[]; totalItems: number }> {
+    const countResult = await this.pool.query<{ total: string }>(
+      `SELECT COUNT(*)::text AS total
+       FROM notes
+       WHERE owner_id = $1 AND deleted_at IS NOT NULL`,
+      [ownerId],
+    );
+    const totalItems = Number(countResult.rows[0].total);
+
+    const rowsResult = await this.pool.query<NoteRow>(
+      `SELECT id, owner_id, title, body, starts_at, updated_at, deleted_at
+       FROM notes
+       WHERE owner_id = $1 AND deleted_at IS NOT NULL
+       ORDER BY deleted_at DESC, id ASC
+       LIMIT $2 OFFSET $3`,
+      [ownerId, pagination.limit, pagination.offset],
+    );
+
+    return {
+      items: rowsResult.rows.map(mapNoteRow),
+      totalItems,
+    };
+  }
+
+  async restoreOwned(ownerId: string, noteId: string): Promise<NoteRecord | null> {
+    const result = await this.pool.query<NoteRow>(
+      `UPDATE notes
+       SET deleted_at = NULL, updated_at = NOW()
+       WHERE owner_id = $1 AND id = $2 AND deleted_at IS NOT NULL
+       RETURNING id, owner_id, title, body, starts_at, updated_at, deleted_at`,
+      [ownerId, noteId],
+    );
+    return result.rows[0] ? mapNoteRow(result.rows[0]) : null;
+  }
+
+  async permanentlyDeleteOwned(ownerId: string, noteId: string): Promise<boolean> {
+    const result = await this.pool.query(
+      `DELETE FROM notes
+       WHERE owner_id = $1 AND id = $2 AND deleted_at IS NOT NULL`,
       [ownerId, noteId],
     );
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async purgeExpiredArchived(cutoff: Date): Promise<number> {
+    const result = await this.pool.query(
+      `DELETE FROM notes
+       WHERE deleted_at IS NOT NULL AND deleted_at <= $1`,
+      [cutoff],
+    );
+    return result.rowCount ?? 0;
   }
 }
