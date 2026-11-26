@@ -1,0 +1,15 @@
+name: Harness
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  harness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate context
+        run: python3 harness/checks/check.py context
+      - name: Test harness
+        run: python3 -m unittest discover -s harness/tests -v
