@@ -204,6 +204,7 @@ function WorkspaceContent() {
   const [linkedNotes, setLinkedNotes] = useState<NoteItem[]>([]);
   const [selectedNoteId, setSelectedNoteId] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<DeleteConfirmTarget | null>(null);
+  const [restoreTarget, setRestoreTarget] = useState<NoteItem | null>(null);
   const [signOutConfirmOpen, setSignOutConfirmOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
@@ -452,6 +453,7 @@ function WorkspaceContent() {
         loadNotes(notesPage, notesPageSize),
         loadArchivedNotes(archivedPage, archivedPageSize),
       ]);
+      setRestoreTarget(null);
       toast.success(`Đã khôi phục ghi chú "${note.title}".`);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Không thể khôi phục ghi chú.');
@@ -1212,7 +1214,7 @@ function WorkspaceContent() {
                       <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
                         <button
                           type="button"
-                          onClick={() => void handleRestoreNote(note)}
+                          onClick={() => setRestoreTarget(note)}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100"
                         >
                           <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.75} />
@@ -1635,6 +1637,41 @@ function WorkspaceContent() {
       )}
 
       {/* CONFIRM DELETE MODAL */}
+      {restoreTarget && (
+        <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-xs">
+          <div className="animate-modal-in w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+            <div className="mb-3 flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                <RotateCcw className="h-5 w-5" strokeWidth={1.75} />
+              </span>
+              <h2 className="text-base font-semibold text-slate-900">
+                Xác nhận khôi phục
+              </h2>
+            </div>
+            <p className="mb-5 text-sm text-slate-600">
+              Bạn có muốn khôi phục ghi chú <strong>{restoreTarget.title}</strong> về danh sách <strong>Ghi chú</strong> không?
+            </p>
+            <div className="flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setRestoreTarget(null)}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleRestoreNote(restoreTarget)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                <RotateCcw className="h-4 w-4" strokeWidth={1.75} />
+                Khôi phục
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {deleteTarget && (
         <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-xs">
           <div className="animate-modal-in w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
