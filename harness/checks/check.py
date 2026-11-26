@@ -8,7 +8,23 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_DOCS = ('AGENTS.md', 'README.md', 'docs/PROJECT.md', 'docs/ROADMAP.md', 'docs/PROGRESS.md', 'docs/CONVENTIONS.md', 'docs/SECURITY.md', 'harness/README.md', 'harness/policy/state.json')
-REQUIRED_AGENT_FILES = ('.agents/rules/core.md', '.agents/rules/quality-gates.md', '.agents/workflows/task.md', '.agents/workflows/phase-gates.md', *('.agents/skills/' + name + '/SKILL.md' for name in ('project-requirements', 'project-architecture', 'project-planning', 'project-implementation', 'project-review', 'project-harness-improvement')))
+REQUIRED_AGENT_FILES = (
+    '.agents/rules/core.md',
+    '.agents/rules/quality-gates.md',
+    '.agents/rules/nestjs-architecture.md',
+    '.agents/rules/frontend-design.md',
+    '.agents/workflows/task.md',
+    '.agents/workflows/phase-gates.md',
+    *('.agents/skills/' + name + '/SKILL.md' for name in (
+        'project-requirements',
+        'project-architecture',
+        'project-planning',
+        'project-implementation',
+        'project-review',
+        'project-harness-improvement',
+        'frontend-design',
+    )),
+)
 
 
 def validate_scope(paths):
@@ -62,6 +78,17 @@ def validate_state(state):
     return errors
 
 
+def validate_evidence_paths(root, state):
+    evidence = state.get('evidence') if isinstance(state, dict) else None
+    if not isinstance(evidence, list):
+        return []
+    return [
+        f'missing evidence: {item}'
+        for item in evidence
+        if isinstance(item, str) and item.strip() and not (root / item).exists()
+    ]
+
+
 def validate_docs(root):
     errors = [f'missing {name}' for name in REQUIRED_DOCS + REQUIRED_AGENT_FILES if not (root / name).is_file()]
     for name in REQUIRED_AGENT_FILES:
@@ -98,7 +125,9 @@ def main():
             errors = validate_docs(ROOT)
             state_file = ROOT / 'harness/policy/state.json'
             if state_file.is_file():
-                errors.extend(validate_state(json.loads(state_file.read_text(encoding='utf-8'))))
+                state = json.loads(state_file.read_text(encoding='utf-8'))
+                errors.extend(validate_state(state))
+                errors.extend(validate_evidence_paths(ROOT, state))
         else:
             policy = read_baseline_policy(ROOT, args.base, args.policy_from_base) if args.policy_from_base else json.loads(args.policy.read_text(encoding='utf-8'))
             if not isinstance(policy, dict):

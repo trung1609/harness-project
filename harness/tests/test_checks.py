@@ -111,6 +111,20 @@ class StateTests(unittest.TestCase):
             path.write_text('---\nname: project-review\ndescription: Review project changes.\n---\n', encoding='utf-8')
             self.assertEqual(check.validate_skill(path), [])
 
+    def test_evidence_paths_must_exist(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            (root / 'docs').mkdir()
+            (root / 'docs/a.md').write_text('ok', encoding='utf-8')
+            self.assertEqual(check.validate_evidence_paths(root, {'evidence': ['docs/a.md']}), [])
+            errors = check.validate_evidence_paths(root, {'evidence': ['docs/a.md', 'docs/missing.md']})
+            self.assertEqual(errors, ['missing evidence: docs/missing.md'])
+
+    def test_frontend_design_and_nestjs_rules_are_required(self):
+        self.assertIn('.agents/rules/nestjs-architecture.md', check.REQUIRED_AGENT_FILES)
+        self.assertIn('.agents/rules/frontend-design.md', check.REQUIRED_AGENT_FILES)
+        self.assertIn('.agents/skills/frontend-design/SKILL.md', check.REQUIRED_AGENT_FILES)
+
 
 if __name__ == '__main__':
     unittest.main()

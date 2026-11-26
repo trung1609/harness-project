@@ -9,10 +9,12 @@
     "dev": "npm run build && node --env-file-if-exists=.env dist/main.js",
     "start": "node --env-file-if-exists=.env dist/main.js",
     "db:migrate": "node --env-file-if-exists=.env dist/db/migrate-cli.js",
+    "ops:verify-restore": "node --env-file-if-exists=.env dist/ops/verify-restore-cli.js",
+    "ops:retry-notifications": "node --env-file-if-exists=.env dist/ops/retry-notifications-cli.js",
     "build": "tsc -p tsconfig.json && node -e \"import('node:fs').then(fs => fs.cpSync('src/db/migrations', 'dist/db/migrations', { recursive: true }))\"",
     "lint": "eslint src test --max-warnings 0",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "node --test test/bootstrap.test.mjs test/common/exceptions.test.mjs",
+    "test": "node --test test/bootstrap.test.mjs test/common/exceptions.test.mjs test/ops/ops.test.mjs",
     "test:integration-db": "node --env-file-if-exists=.env --test test/db/integration-db.test.mjs",
     "test:activation": "node --env-file-if-exists=.env --test test/auth/activation.test.mjs",
     "test:sessions": "node --env-file-if-exists=.env --test test/auth/sessions.test.mjs",
@@ -34,7 +36,9 @@
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "22.20.7",
     "@types/nodemailer": "^8.0.2",
-    "@types/pg": "^8.23.1"
+    "@types/pg": "^8.23.1",
+    "typescript": "6.0.3"
   }
 }

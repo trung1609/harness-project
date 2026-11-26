@@ -1,7 +1,7 @@
 {
-  "phase": "Phase 4 — Implementation",
-  "task": "IM-11 complete; awaiting IM-12 approval",
-  "status": "IN_PROGRESS",
+  "phase": "Phase 7 — Harness improvement",
+  "task": "All roadmap phases (0–7) complete",
+  "status": "COMPLETE",
   "completed": [
     "Phase 0 Harness Foundation complete",
     "Phase 1 requirements baseline complete",
@@ -18,7 +18,11 @@
     "IM-08 sign-in, registration, activation, resend, refresh, and revoked-session handling verified with web:auth",
     "IM-09 personal workspace timetable, tasks, notes, pagination, and note links verified with web:personal-data",
     "IM-10 support/unlock forms, Cloudinary upload retry, evidence viewer, and protected ADMIN screens verified with web:support",
-    "IM-11 GitHub Actions CI workflow, OpenAPI contract verification, E2E route checks, and npm audit (0 vulnerabilities) verified"
+    "IM-11 GitHub Actions CI workflow, OpenAPI contract verification, E2E route checks, and npm audit (0 vulnerabilities) verified",
+    "IM-12 Vercel two-project routing config, operational retry/restore-verification scripts, deployment/recovery runbook, and local pg_dump/pg_restore drill verified",
+    "Phase 5 local system verification complete (all BE integration/contract, FE E2E, npm audit, and Harness checks passed)",
+    "Phase 6 Vercel Production deployments (personal-notebook-api and personal-notebook-web) live and /api/v1/health rewrite verified; handoff report recorded",
+    "Phase 7 Harness improvements (evidence-path validation, agent rule/skill coverage, .gitleaks.toml build-artifact allowlist) verified"
   ],
   "blocked": [],
   "issues": [
@@ -35,6 +39,10 @@
     "docs/specs/openapi.json",
     "docs/specs/deployment-and-verification.md",
     "docs/plans/phase-2-01.md",
-    "docs/plans/phase-3-implementation.md"
+    "docs/plans/phase-3-implementation.md",
+    "docs/runbooks/deployment-and-recovery.md",
+    "docs/reports/phase-5-verification.md",
+    "docs/reports/phase-6-handoff.md",
+    "docs/reports/phase-7-harness-improvement.md"
   ]
 }

@@ -41,3 +41,11 @@ The commands are planned entry points. IM-01 defines root `build`, `lint`, `type
 - PASS: Clean `npm ci` from the final lockfile, `npm run build`, `npm run lint`, `npm run typecheck` and `npm test`. Two HTTP smoke tests passed after the initial tests failed with the workspace absent. Both built apps also served HTTP 200 simultaneously on their documented local ports.
 - PASS: Ten Harness tests and a redacted Gitleaks scan of tracked and non-ignored worktree files reported no leaks. npm dependency audit reported zero known vulnerabilities at installation. CI and Vercel preview are NOT RUN for this task.
 - COMPLETE: Workspace foundation only. IM-02 PostgreSQL and Redis persistence awaits approval.
+
+## IM-12 evidence — 2026-11-26
+
+- Started from commit `08a5ce30a9dcb38edf9940ec8e1044bd1535c542` with no uncommitted changes prior to IM-12.
+- Added Vercel configuration under `apps/fe/vercel.json`, `apps/be/vercel.json`, `apps/be/api/index.ts`, and `apps/be/src/vercel.ts`; operational CLIs and helpers under `apps/be/src/ops/` (`ops:verify-restore`, `ops:retry-notifications`) with unit tests in `apps/be/test/ops/ops.test.mjs`; and `docs/runbooks/deployment-and-recovery.md` (preserving the 70% Neon storage threshold as a proposed setting).
+- PASS: `npm run build`, `npm run lint`, `npm run typecheck`, and `npm test` (6/6 backend unit/ops tests and 1/1 frontend bootstrap test).
+- PASS: Local off-provider backup and disposable restore drill using `pg_dump --format=custom` and `pg_restore` against disposable PostgreSQL 18.0 databases, verified via `verifyRestoredDatabase` (1 account, 1 note, 1 task, 1 task_note, 1 support_request, 1 support_evidence with valid `public_id`/`image_url`, 1 notification_job, and `001_initial_schema.sql` migration record).
+- NOT RUN (deferred to Phase 5/6 when authorized): Live Vercel Preview/Production deployment, Neon quota monitoring, Upstash Redis rotation, Gmail SMTP delivery, and 10 MB direct Cloudinary upload.

@@ -2,5 +2,10 @@
 useDefault = true
 
 [[allowlists]]
-description = "Locally downloaded development tools, not project source"
-paths = ['''(^|/)\.tools/''']
+description = "Locally downloaded tools, dependencies, and generated build outputs"
+paths = [
+  '''(^|/)\.tools/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)\.next/''',
+  '''(^|/)dist/''',
+]
