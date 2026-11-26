@@ -13,6 +13,7 @@ import {
   Clock,
   FileText,
   Filter,
+  KeyRound,
   LifeBuoy,
   Link2,
   LogOut,
@@ -27,6 +28,7 @@ import {
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState, type FormEvent } from 'react';
+import { ChangePasswordCard } from '../../features/auth/ChangePasswordCard';
 import { createAuthApiClient } from '../../features/auth/auth-api';
 import { createAuthWorkflow } from '../../features/auth/auth-state';
 import {
@@ -182,6 +184,7 @@ function WorkspaceContent() {
   const [selectedNoteId, setSelectedNoteId] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<DeleteConfirmTarget | null>(null);
   const [signOutConfirmOpen, setSignOutConfirmOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   const loadTimetable = useCallback(async (targetWeek: string) => {
     const data = await tasksApi.getTimetableWeek(targetWeek);
@@ -485,6 +488,14 @@ function WorkspaceContent() {
               <LifeBuoy className="h-4 w-4 text-blue-600" strokeWidth={1.75} />
               <span className="hidden sm:inline">Hỗ trợ</span>
             </Link>
+            <button
+              type="button"
+              onClick={() => setChangePasswordOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+            >
+              <KeyRound className="h-4 w-4" strokeWidth={1.75} />
+              <span className="hidden sm:inline">Đổi mật khẩu</span>
+            </button>
             <button
               type="button"
               onClick={() => setSignOutConfirmOpen(true)}
@@ -1356,6 +1367,35 @@ function WorkspaceContent() {
       )}
 
       {/* CONFIRM SIGN OUT MODAL */}
+      {changePasswordOpen && (
+        <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-xs">
+          <div className="animate-modal-in w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                  <KeyRound className="h-4 w-4" strokeWidth={1.75} />
+                </span>
+                <h2 className="text-base font-semibold text-slate-900">
+                  Đổi mật khẩu
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setChangePasswordOpen(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              >
+                <X className="h-4 w-4" strokeWidth={1.75} />
+              </button>
+            </div>
+            <ChangePasswordCard
+              onSuccess={() => {
+                setTimeout(() => setChangePasswordOpen(false), 1200);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {signOutConfirmOpen && (
         <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-xs">
           <div className="animate-modal-in w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">

@@ -13,6 +13,14 @@ export interface AuthApiClient {
   signIn(email: string, password: string): Promise<{ account: AuthAccount }>;
   signOut(): Promise<void>;
   checkProtectedSession(): Promise<unknown>;
+  changePassword(currentPassword: string, newPassword: string): Promise<void>;
+  requestPasswordReset(email: string): Promise<{ status: string }>;
+  confirmPasswordReset(token: string, newPassword: string): Promise<void>;
+  requestUnlockVerification(email: string): Promise<{ status: string }>;
+  submitUnlockRequestWithToken(
+    token: string,
+    text: string,
+  ): Promise<{ id: string; status: string }>;
 }
 
 export function createAuthApiClient(
@@ -57,6 +65,41 @@ export function createAuthApiClient(
       return apiFetch<unknown>('/tasks?page=1&pageSize=10', {
         ...baseOptions,
         method: 'GET',
+      });
+    },
+    changePassword(currentPassword: string, newPassword: string) {
+      return apiFetch<void>('/auth/password-changes', {
+        ...baseOptions,
+        method: 'POST',
+        body: { currentPassword, newPassword },
+      });
+    },
+    requestPasswordReset(email: string) {
+      return apiFetch<{ status: string }>('/auth/password-resets/requests', {
+        ...baseOptions,
+        method: 'POST',
+        body: { email },
+      });
+    },
+    confirmPasswordReset(token: string, newPassword: string) {
+      return apiFetch<void>('/auth/password-resets/confirm', {
+        ...baseOptions,
+        method: 'POST',
+        body: { token, newPassword },
+      });
+    },
+    requestUnlockVerification(email: string) {
+      return apiFetch<{ status: string }>('/auth/unlock-verification-emails', {
+        ...baseOptions,
+        method: 'POST',
+        body: { email },
+      });
+    },
+    submitUnlockRequestWithToken(token: string, text: string) {
+      return apiFetch<{ id: string; status: string }>('/auth/unlock-requests', {
+        ...baseOptions,
+        method: 'POST',
+        body: { token, text },
       });
     },
   };

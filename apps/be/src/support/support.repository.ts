@@ -38,7 +38,7 @@ export interface SupportRequestRecord {
     cloudinaryAssetId: string;
     publicId: string;
     imageUrl: string;
-  };
+  } | null;
 }
 
 interface IntentRow {
@@ -58,10 +58,10 @@ interface SupportJoinedRow {
   status: SupportRequestState;
   submitted_at: Date;
   reviewed_at: Date | null;
-  evidence_id: string;
-  cloudinary_asset_id: string;
-  public_id: string;
-  image_url: string;
+  evidence_id: string | null;
+  cloudinary_asset_id: string | null;
+  public_id: string | null;
+  image_url: string | null;
 }
 
 function mapJoinedRow(row: SupportJoinedRow): SupportRequestRecord {
@@ -73,12 +73,18 @@ function mapJoinedRow(row: SupportJoinedRow): SupportRequestRecord {
     state: row.status,
     submittedAt: row.submitted_at,
     reviewedAt: row.reviewed_at,
-    evidence: {
-      id: row.evidence_id,
-      cloudinaryAssetId: row.cloudinary_asset_id,
-      publicId: row.public_id,
-      imageUrl: row.image_url,
-    },
+    evidence:
+      row.evidence_id &&
+      row.cloudinary_asset_id &&
+      row.public_id &&
+      row.image_url
+        ? {
+            id: row.evidence_id,
+            cloudinaryAssetId: row.cloudinary_asset_id,
+            publicId: row.public_id,
+            imageUrl: row.image_url,
+          }
+        : null,
   };
 }
 
@@ -266,7 +272,7 @@ export class SupportRepository {
               sr.submitted_at, sr.reviewed_at,
               se.id AS evidence_id, se.cloudinary_asset_id, se.public_id, se.image_url
        FROM support_requests sr
-       JOIN support_evidence se ON se.request_id = sr.id
+       LEFT JOIN support_evidence se ON se.request_id = sr.id
        WHERE sr.id = $1`,
       [requestId],
     );
@@ -286,7 +292,7 @@ export class SupportRepository {
               sr.submitted_at, sr.reviewed_at,
               se.id AS evidence_id, se.cloudinary_asset_id, se.public_id, se.image_url
        FROM support_requests sr
-       JOIN support_evidence se ON se.request_id = sr.id
+       LEFT JOIN support_evidence se ON se.request_id = sr.id
        ORDER BY sr.submitted_at DESC, sr.id ASC
        LIMIT $1 OFFSET $2`,
       [pagination.limit, pagination.offset],
@@ -315,7 +321,7 @@ export class SupportRepository {
               sr.submitted_at, sr.reviewed_at,
               se.id AS evidence_id, se.cloudinary_asset_id, se.public_id, se.image_url
        FROM support_requests sr
-       JOIN support_evidence se ON se.request_id = sr.id
+       LEFT JOIN support_evidence se ON se.request_id = sr.id
        WHERE sr.requester_id = $1
        ORDER BY sr.submitted_at DESC, sr.id ASC
        LIMIT $2 OFFSET $3`,
@@ -379,7 +385,7 @@ export class SupportRepository {
       if (decision === 'APPROVE_UNLOCK') {
         await client.query(
           `UPDATE accounts
-           SET locked_at = NULL, updated_at = NOW()
+           SET locked_at = NULL, lock_reason = NULL, updated_at = NOW()
            WHERE id = $1`,
           [existing.requester_id],
         );

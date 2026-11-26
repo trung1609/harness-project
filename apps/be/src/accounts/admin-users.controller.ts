@@ -57,14 +57,24 @@ export class AdminUsersController {
   @Put(':userId/lock')
   async setAccountLock(
     @Param('userId') userId: string,
-    @Body() body: { locked?: unknown },
+    @Body() body: { locked?: unknown; reason?: unknown },
   ) {
     if (typeof body?.locked !== 'boolean') {
       throw new ValidationAppException('locked boolean is required');
     }
 
+    let reason: string | null = null;
+    if (body.locked) {
+      if (typeof body.reason !== 'string' || !body.reason.trim()) {
+        throw new ValidationAppException(
+          'Lock reason is required when locking an account',
+        );
+      }
+      reason = body.reason.trim();
+    }
+
     const updated = body.locked
-      ? await this.accounts.lockAccount(userId)
+      ? await this.accounts.lockAccount(userId, reason)
       : await this.accounts.unlockAccount(userId);
 
     if (!updated) {
@@ -76,6 +86,7 @@ export class AdminUsersController {
       email: updated.email,
       role: updated.role,
       lockedAt: updated.lockedAt,
+      lockReason: updated.lockReason,
     };
   }
 }

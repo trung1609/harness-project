@@ -8,6 +8,7 @@ export interface AccountRecord {
   role: 'ADMIN' | 'USER';
   activatedAt: Date | null;
   lockedAt: Date | null;
+  lockReason: string | null;
   sessionGeneration: number;
 }
 
@@ -29,6 +30,7 @@ interface AccountRow {
   role: 'ADMIN' | 'USER';
   activated_at: Date | null;
   locked_at: Date | null;
+  lock_reason: string | null;
   session_generation: number;
 }
 
@@ -40,6 +42,7 @@ function mapAccountRow(row: AccountRow): AccountRecord {
     role: row.role,
     activatedAt: row.activated_at,
     lockedAt: row.locked_at,
+    lockReason: row.lock_reason,
     sessionGeneration: row.session_generation,
   };
 }
@@ -53,7 +56,7 @@ export class AccountsRepository {
   async findByEmail(email: string): Promise<AccountRecord | null> {
     const normalized = normalizeEmail(email);
     const result = await this.pool.query<AccountRow>(
-      `SELECT id, email, password_hash, role, activated_at, locked_at, session_generation
+      `SELECT id, email, password_hash, role, activated_at, locked_at, lock_reason, session_generation
        FROM accounts
        WHERE email = $1`,
       [normalized],
@@ -63,7 +66,7 @@ export class AccountsRepository {
 
   async findById(id: string): Promise<AccountRecord | null> {
     const result = await this.pool.query<AccountRow>(
-      `SELECT id, email, password_hash, role, activated_at, locked_at, session_generation
+      `SELECT id, email, password_hash, role, activated_at, locked_at, lock_reason, session_generation
        FROM accounts
        WHERE id = $1`,
       [id],
@@ -81,7 +84,7 @@ export class AccountsRepository {
       const result = await this.pool.query<AccountRow>(
         `INSERT INTO accounts (id, email, password_hash, role)
          VALUES ($1, $2, $3, 'USER')
-         RETURNING id, email, password_hash, role, activated_at, locked_at, session_generation`,
+         RETURNING id, email, password_hash, role, activated_at, locked_at, lock_reason, session_generation`,
         [id, normalized, passwordHash],
       );
       return mapAccountRow(result.rows[0]);
@@ -104,24 +107,28 @@ export class AccountsRepository {
        SET activated_at = COALESCE(activated_at, NOW()),
            updated_at = NOW()
        WHERE id = $1
-       RETURNING id, email, password_hash, role, activated_at, locked_at, session_generation`,
+       RETURNING id, email, password_hash, role, activated_at, locked_at, lock_reason, session_generation`,
       [accountId],
     );
     return result.rows[0] ? mapAccountRow(result.rows[0]) : null;
   }
 
   /**
-   * Locks the account and increments session_generation in one atomic update to invalidate existing sessions.
+   * Locks the account with a reason and increments session_generation in one atomic update to invalidate existing sessions.
    */
-  async lockAccount(accountId: string): Promise<AccountRecord | null> {
+  async lockAccount(
+    accountId: string,
+    reason: string | null = null,
+  ): Promise<AccountRecord | null> {
     const result = await this.pool.query<AccountRow>(
       `UPDATE accounts
        SET locked_at = COALESCE(locked_at, NOW()),
+           lock_reason = COALESCE($2, lock_reason),
            session_generation = session_generation + 1,
            updated_at = NOW()
        WHERE id = $1
-       RETURNING id, email, password_hash, role, activated_at, locked_at, session_generation`,
-      [accountId],
+       RETURNING id, email, password_hash, role, activated_at, locked_at, lock_reason, session_generation`,
+      [accountId, reason],
     );
     return result.rows[0] ? mapAccountRow(result.rows[0]) : null;
   }
@@ -133,10 +140,31 @@ export class AccountsRepository {
     const result = await this.pool.query<AccountRow>(
       `UPDATE accounts
        SET locked_at = NULL,
+           lock_reason = NULL,
            updated_at = NOW()
        WHERE id = $1
-       RETURNING id, email, password_hash, role, activated_at, locked_at, session_generation`,
+       RETURNING id, email, password_hash, role, activated_at, locked_at, lock_reason, session_generation`,
       [accountId],
+    );
+    return result.rows[0] ? mapAccountRow(result.rows[0]) : null;
+  }
+
+  /**
+   * Updates an account's password hash and optionally revokes existing sessions.
+   */
+  async updatePassword(
+    accountId: string,
+    passwordHash: string,
+    revokeSessions: boolean = false,
+  ): Promise<AccountRecord | null> {
+    const result = await this.pool.query<AccountRow>(
+      `UPDATE accounts
+       SET password_hash = $2,
+           session_generation = CASE WHEN $3 THEN session_generation + 1 ELSE session_generation END,
+           updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, email, password_hash, role, activated_at, locked_at, lock_reason, session_generation`,
+      [accountId, passwordHash, revokeSessions],
     );
     return result.rows[0] ? mapAccountRow(result.rows[0]) : null;
   }
@@ -149,7 +177,10 @@ export class AccountsRepository {
     offset: number;
   }): Promise<{
     items: Array<
-      Pick<AccountRecord, 'id' | 'email' | 'role' | 'activatedAt' | 'lockedAt'>
+      Pick<
+        AccountRecord,
+        'id' | 'email' | 'role' | 'activatedAt' | 'lockedAt' | 'lockReason'
+      >
     >;
     totalItems: number;
   }> {
@@ -159,7 +190,7 @@ export class AccountsRepository {
     const totalItems = Number(countRes.rows[0].total);
 
     const rowsRes = await this.pool.query<AccountRow>(
-      `SELECT id, email, password_hash, role, activated_at, locked_at, session_generation
+      `SELECT id, email, password_hash, role, activated_at, locked_at, lock_reason, session_generation
        FROM accounts
        ORDER BY created_at DESC, id ASC
        LIMIT $1 OFFSET $2`,
@@ -173,6 +204,7 @@ export class AccountsRepository {
         role: row.role,
         activatedAt: row.activated_at,
         lockedAt: row.locked_at,
+        lockReason: row.lock_reason,
       })),
       totalItems,
     };

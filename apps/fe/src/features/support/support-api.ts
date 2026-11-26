@@ -23,6 +23,7 @@ export interface SupportRequestItem {
   state: 'SUBMITTED' | 'IN_REVIEW' | 'RESOLVED';
   submittedAt: string;
   reviewedAt: string | null;
+  evidence?: { id: string } | null;
 }
 
 export interface EvidenceViewResponse {

@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import {
   Controller,
   Get,
@@ -15,6 +16,10 @@ import type { Pool } from 'pg';
 import { AccountsRepository } from './accounts/accounts.repository.js';
 import { AdminUsersController } from './accounts/admin-users.controller.js';
 import { ActivationService } from './auth/activation.service.js';
+import {
+  AccountRecoveryService,
+  type RecoveryMailSender,
+} from './auth/recovery.service.js';
 import {
   AuthController,
   COOKIE_SECURE_TOKEN,
@@ -148,6 +153,23 @@ class AppModule implements OnModuleDestroy {
       csrfSecret,
     );
 
+    const recoveryMailSender: RecoveryMailSender = smtpSender ?? {
+      async sendPasswordResetEmail(to, resetUrl) {
+        console.log(`[mail:dev] Password reset for ${to}: ${resetUrl}`);
+      },
+      async sendUnlockVerificationEmail(to, unlockUrl) {
+        console.log(`[mail:dev] Unlock link for ${to}: ${unlockUrl}`);
+      },
+    };
+    const recoveryService = new AccountRecoveryService(
+      pool,
+      redis,
+      accountsRepo,
+      recoveryMailSender,
+      (token) => `${appBaseUrl}/reset-password?token=${encodeURIComponent(token)}`,
+      (token) => `${appBaseUrl}/unlock?token=${encodeURIComponent(token)}`,
+    );
+
     const notesService = new NotesService(notesRepo);
     const tasksService = new TasksService(tasksRepo, notesRepo);
     const schedulingService = new SchedulingService(schedulingRepo);
@@ -208,6 +230,7 @@ class AppModule implements OnModuleDestroy {
         { provide: Reflector, useValue: reflector },
         { provide: AccountsRepository, useValue: accountsRepo },
         { provide: ActivationService, useValue: activationService },
+        { provide: AccountRecoveryService, useValue: recoveryService },
         { provide: SessionService, useValue: sessionService },
         { provide: NotesService, useValue: notesService },
         { provide: TasksService, useValue: tasksService },
@@ -226,4 +249,29 @@ export async function createApp(options?: NestApplicationOptions) {
   app.setGlobalPrefix('api/v1');
   app.useGlobalFilters(new AppExceptionFilter());
   return app;
+}
+
+type ExpressHandler = (
+  req: IncomingMessage,
+  res: ServerResponse,
+) => void | Promise<void>;
+
+let cachedVercelHandler: Promise<ExpressHandler> | null = null;
+
+/**
+ * Default Vercel entrypoint for NestJS auto-detection (`/var/task/src/app.js`).
+ */
+export default async function handler(
+  req: IncomingMessage,
+  res: ServerResponse,
+): Promise<void> {
+  if (!cachedVercelHandler) {
+    cachedVercelHandler = (async () => {
+      const app = await createApp({ logger: false });
+      await app.init();
+      return app.getHttpAdapter().getInstance() as ExpressHandler;
+    })();
+  }
+  const expressHandler = await cachedVercelHandler;
+  await expressHandler(req, res);
 }

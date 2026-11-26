@@ -5,12 +5,15 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  Optional,
   Post,
   Req,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { EmailAlreadyRegisteredError } from '../accounts/accounts.repository.js';
 import {
+  AppException,
   ConflictAppException,
   ForbiddenAppException,
   GoneAppException,
@@ -31,9 +34,12 @@ interface CookieRequest {
 import { parseCookieHeader, verifyCsrfToken } from '../security/csrf.js';
 import {
   ACCESS_COOKIE_NAME,
+  AuthGuard,
   CSRF_COOKIE_NAME,
   CSRF_HEADER_NAME,
+  CsrfGuard,
   REFRESH_COOKIE_NAME,
+  type AuthenticatedRequest,
 } from '../security/guards.js';
 import {
   AccountLockedError,
@@ -42,6 +48,12 @@ import {
   InvalidCredentialsError,
   InvalidOrExpiredActivationTokenError,
 } from './activation.service.js';
+import {
+  AccountRecoveryService,
+  EmailDeliveryFailedError,
+  InvalidCurrentPasswordError,
+  InvalidOrExpiredRecoveryTokenError,
+} from './recovery.service.js';
 import { SessionService, UnauthorizedSessionError } from './session.service.js';
 
 export const CSRF_SECRET_TOKEN = Symbol('CSRF_SECRET_TOKEN');
@@ -94,6 +106,7 @@ export class AuthController {
     private readonly sessionService: SessionService,
     @Inject(CSRF_SECRET_TOKEN) private readonly csrfSecret: string,
     @Inject(COOKIE_SECURE_TOKEN) private readonly secureCookies: boolean,
+    @Optional() private readonly recoveryService?: AccountRecoveryService,
   ) {}
 
   @Post('registrations')
@@ -221,5 +234,138 @@ export class AuthController {
     const cookies = parseCookieHeader(req.headers.cookie);
     await this.sessionService.logout(sessionId, cookies[ACCESS_COOKIE_NAME]);
     clearSessionCookies(res, { secure: this.secureCookies });
+  }
+
+  @Post('password-changes')
+  @UseGuards(AuthGuard, CsrfGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async changePassword(
+    @Req() req: AuthenticatedRequest,
+    @Body() body: { currentPassword?: unknown; newPassword?: unknown },
+  ): Promise<void> {
+    if (
+      typeof body?.currentPassword !== 'string' ||
+      typeof body?.newPassword !== 'string' ||
+      !body.currentPassword ||
+      body.newPassword.length < 8
+    ) {
+      throw new ValidationAppException(
+        'currentPassword and newPassword (min 8 chars) are required',
+        'INVALID_INPUT',
+      );
+    }
+
+    try {
+      await this.recoveryService!.changePassword(
+        req.auth!.account.id,
+        body.currentPassword,
+        body.newPassword,
+      );
+    } catch (error: unknown) {
+      if (error instanceof InvalidCurrentPasswordError) {
+        throw new UnauthorizedAppException(error.message, 'INVALID_CREDENTIALS');
+      }
+      throw error;
+    }
+  }
+
+  @Post('password-resets/requests')
+  @HttpCode(HttpStatus.ACCEPTED)
+  async requestPasswordReset(@Body() body: { email?: unknown }) {
+    if (typeof body?.email !== 'string' || !body.email.trim()) {
+      throw new ValidationAppException('email is required', 'INVALID_INPUT');
+    }
+    try {
+      return await this.recoveryService!.requestPasswordReset(body.email);
+    } catch (error: unknown) {
+      if (error instanceof EmailDeliveryFailedError) {
+        throw new AppException(
+          HttpStatus.SERVICE_UNAVAILABLE,
+          'EMAIL_DELIVERY_FAILED',
+          error.message,
+        );
+      }
+      throw error;
+    }
+  }
+
+  @Post('password-resets/confirm')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async confirmPasswordReset(
+    @Body() body: { token?: unknown; newPassword?: unknown },
+  ): Promise<void> {
+    if (
+      typeof body?.token !== 'string' ||
+      !body.token.trim() ||
+      typeof body?.newPassword !== 'string' ||
+      body.newPassword.length < 8
+    ) {
+      throw new ValidationAppException(
+        'token and newPassword (min 8 chars) are required',
+        'INVALID_INPUT',
+      );
+    }
+
+    try {
+      await this.recoveryService!.confirmPasswordReset(
+        body.token.trim(),
+        body.newPassword,
+      );
+    } catch (error: unknown) {
+      if (error instanceof InvalidOrExpiredRecoveryTokenError) {
+        throw new GoneAppException(error.message, 'RESET_TOKEN_EXPIRED');
+      }
+      throw error;
+    }
+  }
+
+  @Post('unlock-verification-emails')
+  @HttpCode(HttpStatus.ACCEPTED)
+  async requestUnlockVerification(@Body() body: { email?: unknown }) {
+    if (typeof body?.email !== 'string' || !body.email.trim()) {
+      throw new ValidationAppException('email is required', 'INVALID_INPUT');
+    }
+    try {
+      return await this.recoveryService!.requestUnlockVerification(body.email);
+    } catch (error: unknown) {
+      if (error instanceof EmailDeliveryFailedError) {
+        throw new AppException(
+          HttpStatus.SERVICE_UNAVAILABLE,
+          'EMAIL_DELIVERY_FAILED',
+          error.message,
+        );
+      }
+      throw error;
+    }
+  }
+
+  @Post('unlock-requests')
+  @HttpCode(HttpStatus.CREATED)
+  async submitUnlockRequestWithToken(
+    @Body() body: { token?: unknown; text?: unknown },
+  ) {
+    if (
+      typeof body?.token !== 'string' ||
+      !body.token.trim() ||
+      typeof body?.text !== 'string' ||
+      !body.text.trim()
+    ) {
+      throw new ValidationAppException(
+        'token and text are required',
+        'INVALID_INPUT',
+      );
+    }
+
+    try {
+      return await this.recoveryService!.submitUnlockRequestWithToken(
+        body.token.trim(),
+        body.text,
+      );
+    } catch (error: unknown) {
+      if (error instanceof InvalidOrExpiredRecoveryTokenError) {
+        throw new GoneAppException(error.message, 'UNLOCK_TOKEN_EXPIRED');
+      }
+      throw error;
+    }
   }
 }

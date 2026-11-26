@@ -11,6 +11,7 @@ export interface AdminUserItem {
   role: 'ADMIN' | 'USER';
   activatedAt: string | null;
   lockedAt: string | null;
+  lockReason?: string | null;
 }
 
 export type AdminDecisionAction =
@@ -28,13 +29,13 @@ export function createAdminApiClient(
         { ...baseOptions, method: 'GET' },
       );
     },
-    setUserLock(userId: string, locked: boolean) {
+    setUserLock(userId: string, locked: boolean, reason?: string) {
       return apiFetch<AdminUserItem>(
         `/admin/users/${encodeURIComponent(userId)}/lock`,
         {
           ...baseOptions,
           method: 'PUT',
-          body: { locked },
+          body: locked ? { locked, reason } : { locked },
         },
       );
     },

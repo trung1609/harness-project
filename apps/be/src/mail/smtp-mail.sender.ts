@@ -114,4 +114,51 @@ export class SmtpMailSender implements MailSender, SupportMailSender {
       html,
     });
   }
+
+  async sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
+    const safeUrl = escapeHtml(resetUrl);
+    const html = wrapEmailLayout(
+      'Đặt lại mật khẩu',
+      `<p style="margin:0 0 14px;">Xin chào,</p>
+       <p style="margin:0 0 20px;">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong>Sổ tay cá nhân</strong> của bạn. Nhấn nút bên dưới để tạo mật khẩu mới:</p>
+       <p style="margin:0 0 22px;">
+         <a href="${safeUrl}" style="display:inline-block;padding:11px 22px;background-color:#2563eb;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;border-radius:8px;">Cập nhật mật khẩu mới</a>
+       </p>
+       <p style="margin:0 0 12px;font-size:13px;color:#475569;">Liên kết này chỉ sử dụng một lần và sẽ hết hạn sau <strong>30 phút</strong>.</p>
+       <p style="margin:0;font-size:12px;color:#64748b;word-break:break-all;">Nếu nút trên không hoạt động, hãy sao chép đường dẫn sau:<br/><a href="${safeUrl}" style="color:#2563eb;">${safeUrl}</a></p>`,
+    );
+
+    await this.transporter.sendMail({
+      from: this.from,
+      to,
+      subject: '[Sổ tay cá nhân] Đặt lại mật khẩu tài khoản',
+      text: `Xin chào,\n\nVui lòng mở liên kết sau để đặt lại mật khẩu (dùng một lần, hết hạn sau 30 phút):\n\n${resetUrl}\n\nNếu bạn không yêu cầu, hãy bỏ qua email này.`,
+      html,
+    });
+  }
+
+  async sendUnlockVerificationEmail(
+    to: string,
+    unlockUrl: string,
+  ): Promise<void> {
+    const safeUrl = escapeHtml(unlockUrl);
+    const html = wrapEmailLayout(
+      'Xác minh yêu cầu mở khóa tài khoản',
+      `<p style="margin:0 0 14px;">Xin chào,</p>
+       <p style="margin:0 0 20px;">Tài khoản của bạn hiện đang bị khóa. Nhấn nút bên dưới để xác minh email và gửi yêu cầu mở khóa tới quản trị viên:</p>
+       <p style="margin:0 0 22px;">
+         <a href="${safeUrl}" style="display:inline-block;padding:11px 22px;background-color:#2563eb;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;border-radius:8px;">Gửi yêu cầu mở khóa</a>
+       </p>
+       <p style="margin:0 0 12px;font-size:13px;color:#475569;">Liên kết này chỉ sử dụng một lần và sẽ hết hạn sau <strong>30 phút</strong>.</p>
+       <p style="margin:0;font-size:12px;color:#64748b;word-break:break-all;">Đường dẫn trực tiếp:<br/><a href="${safeUrl}" style="color:#2563eb;">${safeUrl}</a></p>`,
+    );
+
+    await this.transporter.sendMail({
+      from: this.from,
+      to,
+      subject: '[Sổ tay cá nhân] Xác minh mở khóa tài khoản',
+      text: `Xin chào,\n\nMở liên kết sau để xác minh email và gửi yêu cầu mở khóa tài khoản (hết hạn sau 30 phút):\n\n${unlockUrl}`,
+      html,
+    });
+  }
 }

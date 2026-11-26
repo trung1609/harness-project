@@ -134,6 +134,9 @@ export class SupportService {
     if (viewerRole !== 'ADMIN' && request.requesterId !== viewerId) {
       throw new NotFoundAppException('Support request not found');
     }
+    if (!request.evidence) {
+      throw new NotFoundAppException('No evidence image attached to this request');
+    }
 
     const expiresAt = new Date(now.getTime() + VIEW_URL_TTL_MS);
     const viewingUrl = await this.cloudinary.createViewingUrl(
