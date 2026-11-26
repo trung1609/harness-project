@@ -1,0 +1,24 @@
+{
+  "name": "personal-notebook",
+  "private": true,
+  "engines": {
+    "node": "^22.13.0",
+    "npm": ">=10"
+  },
+  "workspaces": ["apps/be", "apps/fe"],
+  "scripts": {
+    "dev:api": "npm run dev --workspace apps/be",
+    "dev:web": "npm run dev --workspace apps/fe",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm run build && npm run test --workspaces"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "22.20.7",
+    "eslint": "10.15.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.74.0"
+  }
+}

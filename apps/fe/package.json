@@ -1,0 +1,26 @@
+{
+  "name": "@notebook/web",
+  "private": true,
+  "engines": {
+    "node": "^22.13.0"
+  },
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "start": "next start --port 3000",
+    "build": "next build",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "node --test test/bootstrap.test.mjs"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "16.4.6",
+    "@types/react": "19.3.3",
+    "@types/react-dom": "19.3.0",
+    "eslint-plugin-react-hooks": "7.1.1"
+  }
+}

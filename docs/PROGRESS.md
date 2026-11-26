@@ -1,5 +1,5 @@
 # Project progress
 
-**Current phase:** Phase 1 — Requirements & Brainstorming, **COMPLETE**. Task P1-01 established the product context and first-release scope. The requirements baseline and decisions carried forward are in [REQUIREMENTS.md](REQUIREMENTS.md). Completion evidence is in the [task plan](plans/phase-1-01.md).
+**Phase 4 — Implementation is in progress.** The user approved this phase on 2026-11-26. IM-01 Workspace foundation, IM-02 Persistence and configuration, and IM-03 Registration and activation are complete and locally verified. The [first-release plan](plans/phase-3-implementation.md) records the task evidence and what follows.
 
-Phase 0 evidence and limits are in [the Phase 0 report](reports/phase-0.md). Await explicit user approval for Phase 2 — System Design & Specification.
+IM-04 Sessions and account authorization awaits approval. See [local startup](../README.md), the [Phase 2 baseline](plans/phase-2-01.md), [API contract](specs/api-contract.md) and [deployment verification plan](specs/deployment-and-verification.md).

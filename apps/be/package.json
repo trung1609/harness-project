@@ -1,0 +1,31 @@
+{
+  "name": "@notebook/api",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^22.13.0"
+  },
+  "scripts": {
+    "dev": "npm run build && npm start",
+    "start": "node --env-file-if-exists=.env dist/main.js",
+    "db:migrate": "node --env-file-if-exists=.env dist/db/migrate-cli.js",
+    "build": "tsc -p tsconfig.json && node -e \"import('node:fs').then(fs => fs.cpSync('src/db/migrations', 'dist/db/migrations', { recursive: true }))\"",
+    "lint": "eslint src test --max-warnings 0",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node --test test/bootstrap.test.mjs",
+    "test:integration-db": "node --env-file-if-exists=.env --test test/db/integration-db.test.mjs",
+    "test:activation": "node --env-file-if-exists=.env --test test/auth/activation.test.mjs"
+  },
+  "dependencies": {
+    "@nestjs/common": "12.6.2",
+    "@nestjs/core": "12.6.2",
+    "@nestjs/platform-express": "12.6.2",
+    "ioredis": "^6.1.0",
+    "pg": "^8.23.1",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.23.1"
+  }
+}

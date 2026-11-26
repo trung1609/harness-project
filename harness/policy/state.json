@@ -1,9 +1,32 @@
 {
-  "phase": "Phase 1 — Requirements & Brainstorming",
-  "task": "P1-01: requirements baseline complete; awaiting Phase 2 approval",
-  "status": "COMPLETE",
-  "completed": ["Phase 0 Harness Foundation completed with documented limitations", "Phase 1 transition approved by user", "P1-01 first-release requirements and initial acceptance scenarios reviewed and recorded"],
+  "phase": "Phase 4 — Implementation",
+  "task": "IM-03 complete; awaiting IM-04 approval",
+  "status": "IN_PROGRESS",
+  "completed": [
+    "Phase 0 Harness Foundation complete",
+    "Phase 1 requirements baseline complete",
+    "Phase 2 design baseline recorded",
+    "User approved two-project Vercel topology, Neon PostgreSQL, scheduling rules, session and activation lifetimes, and Gmail SMTP delivery",
+    "Phase 3 approved by user; implementation plan recorded",
+    "Phase 4 approved by user; IM-01 workspace bootstrap verified locally",
+    "IM-02 PostgreSQL migrations, Redis configuration, and constraint integration tests verified on disposable Docker services",
+    "IM-03 registration, single-use Redis activation tokens, resend, and notification retry verified with api:activation"
+  ],
   "blocked": [],
-  "issues": ["Phase 2 specification decisions are listed in docs/REQUIREMENTS.md", "Free hosting and Cloudinary plan feasibility remain unverified", "Superpowers plugin availability in this session is not verified", "Docker daemon access denied in prior environment", "Hooks and branch protection are not verified"],
-  "evidence": ["docs/reports/phase-0.md", "docs/REQUIREMENTS.md", "docs/plans/phase-1-01.md"]
+  "issues": [
+    "Vercel routing, Gmail delivery and retry, and direct Cloudinary upload at 10 MB require staging verification",
+    "Neon storage monitoring and off-provider backup and restore require implementation and staging verification",
+    "Operational settings and deferred specification details are listed in docs/REQUIREMENTS.md",
+    "Environment limitations are recorded in the Phase 0 report"
+  ],
+  "evidence": [
+    "docs/REQUIREMENTS.md",
+    "docs/ARCHITECTURE.md",
+    "docs/specs/data-and-scheduling.md",
+    "docs/specs/auth-and-support.md",
+    "docs/specs/openapi.json",
+    "docs/specs/deployment-and-verification.md",
+    "docs/plans/phase-2-01.md",
+    "docs/plans/phase-3-implementation.md"
+  ]
 }

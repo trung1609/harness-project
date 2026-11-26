@@ -26,9 +26,9 @@ These requirements and the acceptance scenarios below define the first-release b
 
 ## User-selected technical constraints
 
-- **TC-01 (FR-01):** Store the activation link token in Redis with a TTL. An expired token cannot activate the account. The TTL duration and detailed resend policy remain open.
-- **TC-02 (FR-01):** Store each signed-in session as a Redis hash identified by `sessionId`, with fields `accessToken`, `refreshToken`, `accessTokenExpAt`, `refreshTokenExpAt` and `userInfo`. Session lifecycle, token lifetimes and the contents of `userInfo` remain open for specification.
-- **TC-03 (FR-08):** Upload support evidence images to Cloudinary. Accept common image formats, including PNG, JPG/JPEG and WebP, up to 20 MB per image. The complete list of additional formats and the image access and retention rules remain open for specification.
+- **TC-01 (FR-01):** Store the activation link token verifier in Redis with a 30-minute TTL. An expired token cannot activate the account. See the [activation and resend policy](specs/auth-and-support.md).
+- **TC-02 (FR-01):** Store each signed-in session as a Redis hash identified by `sessionId`, with fields `accessToken`, `refreshToken`, `accessTokenExpAt`, `refreshTokenExpAt` and `userInfo`. Access tokens last up to 15 minutes and sessions last up to seven days. See the [session lifecycle](specs/auth-and-support.md).
+- **TC-03 (FR-08):** The browser uploads support evidence directly to Cloudinary. After verification, store the Cloudinary image URL in PostgreSQL with the support request so the frontend can display the image to authorized viewers. Accept common image formats, including PNG, JPG/JPEG and WebP, up to 10 MB per image. The complete list of additional formats and retention rules remain open for specification.
 
 ## Initial acceptance scenarios
 
@@ -48,17 +48,16 @@ These requirements and the acceptance scenarios below define the first-release b
 - **AC-14 (FR-01, TC-02):** A successful sign-in creates a Redis hash for its `sessionId` with the five specified fields.
 - **AC-15 (FR-08):** When ADMIN approves an unlock request or responds to a support request, the requester receives a follow-up email.
 - **AC-16 (FR-04, FR-10):** A table or list defaults to 10 items per page and offers exactly 10, 20, 30, 40 and 50. Changing the page size displays up to the chosen number of matching items. Searching, filtering or moving between pages exposes only records the user is authorized to see.
-- **AC-17 (FR-08, TC-03):** A support or unlock request is rejected if the evidence image is missing, its actual format is unsupported, or it exceeds 20 MB. A valid PNG, JPG/JPEG or WebP of up to 20 MB can be submitted with request text and uploaded to Cloudinary. ADMIN can open it from the request. Access to submitted evidence does not grant access to private notes or tasks.
+- **AC-17 (FR-08, TC-03):** A support or unlock request is rejected if the evidence image is missing, its actual format is unsupported, or it exceeds 10 MB. A valid PNG, JPG/JPEG or WebP of up to 10 MB can be submitted with request text and uploaded to Cloudinary. ADMIN can open it from the request. Access to submitted evidence does not grant access to private notes or tasks.
 - **AC-18 (FR-04, FR-10):** In a task list, searching by name and applying a start-date or deadline-date filter shows only matching tasks owned by the signed-in user.
 
-## Decisions for Phase 2 specification
+## Phase 2 specification handoff
 
-1. Specify task progress transitions, time-slot validation, and how edits to dates or times are applied to selected weekly occurrences.
-2. Specify activation-link TTL and resend behavior, session expiry and revocation when an account is locked, and the contents of `userInfo`.
-3. Specify how a locked user identifies their account when sending an unlock request, how ADMIN responds, and how evidence access and retention are controlled. Confirm additional supported image formats and verify that the selected Cloudinary plan can meet the 20 MB requirement.
-4. Specify the additional search fields, filters and default ordering for each view.
-5. Define measurable nonfunctional criteria and assess free hosting for the selected stack and email delivery. Free hosting remains a goal with feasibility unverified. Surface any tradeoff that changes a confirmed requirement for user decision.
+1. [Data and scheduling](specs/data-and-scheduling.md) specifies daily slots, progress, reopening, weekly recurrence and month-end edits.
+2. [Authentication and support](specs/auth-and-support.md) specifies activation, session revocation, support access and Gmail delivery.
+3. [API contract](specs/api-contract.md) records list and filter behavior, direct Cloudinary upload and error handling.
+4. [Deployment and verification](specs/deployment-and-verification.md) records the approved Vercel topology and provider validation plan. Additional filters and image formats, retention policy, retry settings and latency targets remain implementation planning or verification items. Bring any change to a confirmed requirement back to the user.
 
 ## Status
 
-**COMPLETE for Phase 1.** The product purpose, audience, first-release scope and initial acceptance scenarios are recorded. The decisions above carry forward to specification. Phase 2 requires explicit user approval.
+**COMPLETE for Phase 1.** The product purpose, audience, first-release scope and initial acceptance scenarios are recorded. Phase 2 decisions are linked above.
