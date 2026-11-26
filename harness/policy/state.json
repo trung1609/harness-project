@@ -1,9 +1,9 @@
 {
   "phase": "Phase 0 — Harness Foundation",
-  "task": "Phase 0: repository agent skills, rules, and workflows",
-  "status": "BLOCKED",
-  "completed": ["Read-only environment survey", "Phase 0 plan approved by user", "Git initialized and baseline commit exists", "Harness checks and tests implemented", "Superpowers 7.0.2 installed through Codex CLI", "Gitleaks 8.30.1 installed and verified locally", "Repository agent layer implemented and locally validated"],
-  "blocked": ["Updated secret-scanning workflow has not run on GitHub"],
-  "issues": ["User reports earlier CI passed; remote run has not been independently inspected", "Agent skill discovery and Superpowers availability in a new session have not been verified", "Docker daemon was unreachable in the prior session", "Postman CLI was not on the prior PATH", "Hooks are not verified"],
+  "task": "Phase 0: assess completion and remaining limitations",
+  "status": "IN_PROGRESS",
+  "completed": ["Read-only environment survey", "Phase 0 plan approved by user", "Git initialized and baseline commit exists", "Harness checks and tests implemented", "Superpowers 7.0.2 installed through Codex CLI", "Gitleaks 8.30.1 installed and verified locally", "Repository agent layer implemented and locally validated", "Repository skills listed in this Codex session", "Harness CI run #2 succeeded as shown in user-provided screenshot"],
+  "blocked": [],
+  "issues": ["Screenshot does not show commit SHA or detailed logs for CI run #2", "Superpowers plugin availability in this session is not verified", "Docker daemon was unreachable in the prior session", "Postman CLI was not on the prior PATH", "Hooks and branch protection are not verified"],
   "evidence": ["docs/reports/phase-0.md"]
 }
