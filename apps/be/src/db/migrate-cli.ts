@@ -1,9 +1,17 @@
-import { loadDatabaseConfig } from '../config/env.js';
 import { runMigrations } from './migrate.js';
 import { createPgPool } from './postgres.js';
 
 async function main() {
-  const { databaseUrl } = loadDatabaseConfig();
+  const ifEnv = process.argv.includes('--if-env');
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+  if (!databaseUrl) {
+    if (ifEnv) {
+      console.log('Skipping migrations: DATABASE_URL is not set.');
+      return;
+    }
+    throw new Error('DATABASE_URL is required');
+  }
+
   const pool = createPgPool(databaseUrl);
 
   try {
