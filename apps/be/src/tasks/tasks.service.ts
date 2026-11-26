@@ -47,6 +47,7 @@ export class TasksService {
       scheduledDate: string;
       startTime: string;
       endTime: string;
+      progress?: TaskProgress;
     },
     now: Date = new Date(),
   ): Promise<TaskView> {
@@ -58,6 +59,8 @@ export class TasksService {
       scheduledDate,
       startTime: slot.startTime,
       endTime: slot.endTime,
+      progress: input.progress,
+      completedAt: input.progress === 'DONE' ? now : null,
     });
     return toTaskView(created, now);
   }

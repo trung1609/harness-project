@@ -46,6 +46,27 @@ export class SupportController {
     );
   }
 
+  @Get('support/requests')
+  @Roles('USER', 'ADMIN')
+  async listOwnRequests(
+    @Req() req: AuthenticatedRequest,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    try {
+      return await this.supportService.listOwnSupportRequests(
+        req.auth!.account.id,
+        page,
+        pageSize,
+      );
+    } catch (error: unknown) {
+      if (error instanceof InvalidPaginationError) {
+        throw new ValidationAppException(error.message);
+      }
+      throw error;
+    }
+  }
+
   @Post('support/requests')
   @Roles('USER', 'ADMIN')
   @HttpCode(HttpStatus.CREATED)

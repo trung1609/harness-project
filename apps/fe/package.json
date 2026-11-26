@@ -11,7 +11,10 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "node --test test/bootstrap.test.mjs",
-    "test:auth": "node --test test/auth/auth.test.mjs"
+    "test:auth": "node --test test/auth/auth.test.mjs",
+    "test:personal-data": "node --test test/personal-data/personal-data.test.mjs",
+    "test:support": "node --test test/support/support.test.mjs",
+    "test:e2e": "node --test test/e2e/app-e2e.test.mjs"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.5",

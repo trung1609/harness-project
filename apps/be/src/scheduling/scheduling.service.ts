@@ -44,6 +44,7 @@ export class SchedulingService {
       scheduledDate: string;
       startTime: string;
       endTime: string;
+      progress?: 'TODO' | 'IN_PROGRESS' | 'DONE';
     },
     now: Date = new Date(),
   ): Promise<{ seriesId: string; occurrences: TaskView[] }> {
@@ -60,6 +61,8 @@ export class SchedulingService {
         title: input.title,
         startTime: slot.startTime,
         endTime: slot.endTime,
+        progress: input.progress,
+        completedAt: input.progress === 'DONE' ? now : null,
       },
     );
 

@@ -1,0 +1,77 @@
+name: Application CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: 123456
+          POSTGRES_DB: task-management
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d task-management"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DATABASE_URL: postgres://postgres:123456@127.0.0.1:5432/task-management
+      REDIS_URL: redis://127.0.0.1:6379
+      CSRF_SECRET: ci-csrf-secret-value
+      JWT_SECRET: ci-jwt-secret-value
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build, lint, typecheck, and unit tests
+        run: |
+          npm run build
+          npm run lint
+          npm run typecheck
+          npm test
+
+      - name: Backend integration and OpenAPI contract suites
+        run: |
+          npm run test:integration-db --workspace apps/be
+          npm run test:activation --workspace apps/be
+          npm run test:sessions --workspace apps/be
+          npm run test:personal-data --workspace apps/be
+          npm run test:scheduling --workspace apps/be
+          npm run test:support --workspace apps/be
+          npm run test:contract --workspace apps/be
+
+      - name: Frontend application and E2E suites
+        run: |
+          npm run test:auth --workspace apps/fe
+          npm run test:personal-data --workspace apps/fe
+          npm run test:support --workspace apps/fe
+          npm run test:e2e --workspace apps/fe
+
+      - name: Dependency vulnerability audit
+        run: npm audit --audit-level=high

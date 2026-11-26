@@ -51,6 +51,7 @@ export function createTasksApiClient(
       scheduledDate: string;
       startTime: string;
       endTime: string;
+      progress?: TaskProgress;
     }) {
       return apiFetch<TaskItem>('/tasks', {
         ...baseOptions,
@@ -63,6 +64,7 @@ export function createTasksApiClient(
       scheduledDate: string;
       startTime: string;
       endTime: string;
+      progress?: TaskProgress;
     }) {
       return apiFetch<{ seriesId: string; occurrences: TaskItem[] }>(
         '/task-series',
@@ -78,6 +80,21 @@ export function createTasksApiClient(
         ...baseOptions,
         method: 'PUT',
         body: { progress },
+      });
+    },
+    updateTask(
+      taskId: string,
+      patch: {
+        title?: string;
+        scheduledDate?: string;
+        startTime?: string;
+        endTime?: string;
+      },
+    ) {
+      return apiFetch<TaskItem>(`/tasks/${encodeURIComponent(taskId)}`, {
+        ...baseOptions,
+        method: 'PATCH',
+        body: patch,
       });
     },
     editSeries(

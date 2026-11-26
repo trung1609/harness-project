@@ -33,6 +33,7 @@ import {
   type SupportMailSender,
 } from './mail/support-mail.service.js';
 import type { CloudinaryAdapter } from './media/cloudinary.adapter.js';
+import { CloudinaryHttpAdapter } from './media/cloudinary-http.adapter.js';
 import { NotesController } from './notes/notes.controller.js';
 import { NotesRepository } from './notes/notes.repository.js';
 import { NotesService } from './notes/notes.service.js';
@@ -157,21 +158,31 @@ class AppModule implements OnModuleDestroy {
       },
     };
     const supportMailer = new SupportMailerService(pool, supportMailSender);
-    const cloudinaryPlaceholder: CloudinaryAdapter = {
-      async createSignedUploadParams(publicId, expiresAt) {
-        return { publicId, expiresAt: expiresAt.toISOString() };
-      },
-      async fetchAssetMetadata() {
-        return null;
-      },
-      async createViewingUrl(publicId, expiresAt) {
-        return `https://res.cloudinary.com/demo/image/authenticated/${publicId}?exp=${expiresAt.getTime()}`;
-      },
-      async deleteAsset() {},
-    };
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim();
+    const cloudApiKey = process.env.CLOUDINARY_API_KEY?.trim();
+    const cloudApiSecret = process.env.CLOUDINARY_API_SECRET?.trim();
+    const cloudinaryAdapter: CloudinaryAdapter =
+      cloudName && cloudApiKey && cloudApiSecret
+        ? new CloudinaryHttpAdapter({
+            cloudName,
+            apiKey: cloudApiKey,
+            apiSecret: cloudApiSecret,
+          })
+        : {
+            async createSignedUploadParams(publicId, expiresAt) {
+              return { publicId, expiresAt: expiresAt.toISOString() };
+            },
+            async fetchAssetMetadata() {
+              return null;
+            },
+            async createViewingUrl(publicId, expiresAt) {
+              return `https://res.cloudinary.com/demo/image/authenticated/${publicId}?exp=${expiresAt.getTime()}`;
+            },
+            async deleteAsset() {},
+          };
     const supportService = new SupportService(
       supportRepo,
-      cloudinaryPlaceholder,
+      cloudinaryAdapter,
       supportMailer,
     );
 

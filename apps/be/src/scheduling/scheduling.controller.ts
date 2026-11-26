@@ -73,6 +73,7 @@ export class SchedulingController {
       scheduledDate?: unknown;
       startTime?: unknown;
       endTime?: unknown;
+      progress?: unknown;
     },
   ) {
     if (
@@ -87,6 +88,13 @@ export class SchedulingController {
       );
     }
 
+    const progress =
+      body.progress === 'TODO' ||
+      body.progress === 'IN_PROGRESS' ||
+      body.progress === 'DONE'
+        ? body.progress
+        : undefined;
+
     try {
       return await this.schedulingService.createWeeklySeries(
         req.auth!.account.id,
@@ -95,6 +103,7 @@ export class SchedulingController {
           scheduledDate: body.scheduledDate,
           startTime: body.startTime,
           endTime: body.endTime,
+          progress,
         },
       );
     } catch (error: unknown) {

@@ -71,9 +71,17 @@ export class SchedulingRepository {
     ownerId: string,
     seriesMonth: string,
     dates: string[],
-    input: { title: string; startTime: string; endTime: string },
+    input: {
+      title: string;
+      startTime: string;
+      endTime: string;
+      progress?: 'TODO' | 'IN_PROGRESS' | 'DONE';
+      completedAt?: Date | null;
+    },
   ): Promise<{ seriesId: string; occurrences: TaskRecord[] }> {
     const seriesId = randomUUID();
+    const progress = input.progress ?? 'TODO';
+    const completedAt = progress === 'DONE' ? (input.completedAt ?? new Date()) : null;
     const client = await this.pool.connect();
 
     try {
@@ -88,8 +96,8 @@ export class SchedulingRepository {
       for (const scheduledDate of dates) {
         const res = await client.query<TaskRow>(
           `INSERT INTO tasks
-             (id, owner_id, series_id, title, scheduled_date, start_time, end_time)
-           VALUES ($1, $2, $3, $4, $5::date, $6::time, $7::time)
+             (id, owner_id, series_id, title, scheduled_date, start_time, end_time, progress, completed_at)
+           VALUES ($1, $2, $3, $4, $5::date, $6::time, $7::time, $8, $9::timestamptz)
            RETURNING ${TASK_SELECT}`,
           [
             randomUUID(),
@@ -99,6 +107,8 @@ export class SchedulingRepository {
             scheduledDate,
             input.startTime,
             input.endTime,
+            progress,
+            completedAt,
           ],
         );
         occurrences.push(mapTaskRow(res.rows[0]));

@@ -18,7 +18,8 @@
     "test:sessions": "node --env-file-if-exists=.env --test test/auth/sessions.test.mjs",
     "test:personal-data": "node --env-file-if-exists=.env --test test/tasks/tasks.test.mjs test/notes/notes.test.mjs",
     "test:scheduling": "node --env-file-if-exists=.env --test test/scheduling/scheduling.test.mjs",
-    "test:support": "node --env-file-if-exists=.env --test test/support/support.test.mjs"
+    "test:support": "node --env-file-if-exists=.env --test test/support/support.test.mjs",
+    "test:contract": "node --env-file-if-exists=.env --test test/contract/openapi-contract.test.mjs"
   },
   "dependencies": {
     "@nestjs/common": "12.6.2",

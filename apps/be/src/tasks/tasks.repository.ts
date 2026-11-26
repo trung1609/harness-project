@@ -78,12 +78,16 @@ export class TasksRepository {
       scheduledDate: string;
       startTime: string;
       endTime: string;
+      progress?: TaskProgress;
+      completedAt?: Date | null;
     },
   ): Promise<TaskRecord> {
     const id = randomUUID();
+    const progress = input.progress ?? 'TODO';
+    const completedAt = progress === 'DONE' ? (input.completedAt ?? new Date()) : null;
     const result = await this.pool.query<TaskRow>(
-      `INSERT INTO tasks (id, owner_id, title, scheduled_date, start_time, end_time)
-       VALUES ($1, $2, $3, $4::date, $5::time, $6::time)
+      `INSERT INTO tasks (id, owner_id, title, scheduled_date, start_time, end_time, progress, completed_at)
+       VALUES ($1, $2, $3, $4::date, $5::time, $6::time, $7, $8::timestamptz)
        RETURNING ${TASK_SELECT}`,
       [
         id,
@@ -92,6 +96,8 @@ export class TasksRepository {
         input.scheduledDate,
         input.startTime,
         input.endTime,
+        progress,
+        completedAt,
       ],
     );
     return mapTaskRow(result.rows[0]);

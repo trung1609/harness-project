@@ -298,6 +298,36 @@ export class SupportRepository {
     };
   }
 
+  async listRequestsByRequester(
+    requesterId: string,
+    pagination: PaginationParams,
+  ): Promise<{ items: SupportRequestRecord[]; totalItems: number }> {
+    const countRes = await this.pool.query<{ total: string }>(
+      `SELECT COUNT(*)::text AS total
+       FROM support_requests
+       WHERE requester_id = $1`,
+      [requesterId],
+    );
+    const totalItems = Number(countRes.rows[0].total);
+
+    const rowsRes = await this.pool.query<SupportJoinedRow>(
+      `SELECT sr.id, sr.requester_id, sr.type, sr.request_text, sr.status,
+              sr.submitted_at, sr.reviewed_at,
+              se.id AS evidence_id, se.cloudinary_asset_id, se.public_id, se.image_url
+       FROM support_requests sr
+       JOIN support_evidence se ON se.request_id = sr.id
+       WHERE sr.requester_id = $1
+       ORDER BY sr.submitted_at DESC, sr.id ASC
+       LIMIT $2 OFFSET $3`,
+      [requesterId, pagination.limit, pagination.offset],
+    );
+
+    return {
+      items: rowsRes.rows.map(mapJoinedRow),
+      totalItems,
+    };
+  }
+
   async recordDecisionTx(
     requestId: string,
     decision: SupportDecisionAction,

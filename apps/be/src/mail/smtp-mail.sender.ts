@@ -10,6 +10,47 @@ export interface SmtpConfig {
   from: string;
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function wrapEmailLayout(title: string, bodyHtml: string): string {
+  return `<!DOCTYPE html>
+<html lang="vi">
+  <body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0f172a;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f8fafc;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background-color:#ffffff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+            <tr>
+              <td style="padding:24px 28px;border-bottom:1px solid #e2e8f0;background-color:#ffffff;">
+                <span style="display:inline-block;padding:4px 10px;border-radius:6px;background-color:#eff6ff;color:#2563eb;font-size:12px;font-weight:600;letter-spacing:0.02em;">SỔ TAY CÁ NHÂN</span>
+                <h1 style="margin:12px 0 0;font-size:20px;line-height:1.35;font-weight:600;color:#0f172a;">${escapeHtml(title)}</h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 28px;font-size:14px;line-height:1.65;color:#334155;">
+                ${bodyHtml}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 28px;background-color:#f8fafc;border-top:1px solid #e2e8f0;font-size:12px;line-height:1.5;color:#64748b;">
+                Email này được gửi tự động từ hệ thống Sổ tay cá nhân. Vui lòng không chia sẻ liên kết xác thực cho người khác.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
 /**
  * Nodemailer SMTP sender for Gmail TLS/STARTTLS delivery of activation and support emails.
  */
@@ -32,12 +73,24 @@ export class SmtpMailSender implements MailSender, SupportMailSender {
   }
 
   async sendActivationEmail(to: string, activationUrl: string): Promise<void> {
+    const safeUrl = escapeHtml(activationUrl);
+    const html = wrapEmailLayout(
+      'Xác nhận kích hoạt tài khoản',
+      `<p style="margin:0 0 14px;">Xin chào,</p>
+       <p style="margin:0 0 20px;">Cảm ơn bạn đã đăng ký <strong>Sổ tay cá nhân</strong>. Nhấn nút bên dưới để hoàn tất kích hoạt tài khoản của bạn:</p>
+       <p style="margin:0 0 22px;">
+         <a href="${safeUrl}" style="display:inline-block;padding:11px 22px;background-color:#2563eb;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;border-radius:8px;">Kích hoạt tài khoản</a>
+       </p>
+       <p style="margin:0 0 12px;font-size:13px;color:#475569;">Liên kết này chỉ sử dụng một lần và sẽ hết hạn sau <strong>30 phút</strong>.</p>
+       <p style="margin:0;font-size:12px;color:#64748b;word-break:break-all;">Nếu nút trên không hoạt động, hãy sao chép đường dẫn sau vào trình duyệt:<br/><a href="${safeUrl}" style="color:#2563eb;">${safeUrl}</a></p>`,
+    );
+
     await this.transporter.sendMail({
       from: this.from,
       to,
-      subject: 'Kích hoạt tài khoản Sổ tay cá nhân',
-      text: `Nhấn vào liên kết sau để kích hoạt tài khoản của bạn (hết hạn sau 30 phút):\n\n${activationUrl}`,
-      html: `<p>Nhấn vào liên kết sau để kích hoạt tài khoản của bạn (hết hạn sau 30 phút):</p><p><a href="${activationUrl}">Kích hoạt tài khoản</a></p>`,
+      subject: '[Sổ tay cá nhân] Kích hoạt tài khoản của bạn',
+      text: `Xin chào,\n\nCảm ơn bạn đã đăng ký Sổ tay cá nhân.\nVui lòng mở liên kết sau để kích hoạt tài khoản (dùng một lần, hết hạn sau 30 phút):\n\n${activationUrl}\n\nNếu bạn không thực hiện yêu cầu này, có thể bỏ qua email.`,
+      html,
     });
   }
 
@@ -46,11 +99,19 @@ export class SmtpMailSender implements MailSender, SupportMailSender {
     subject: string,
     body: string,
   ): Promise<void> {
+    const html = wrapEmailLayout(
+      subject,
+      `<p style="margin:0 0 14px;">Xin chào,</p>
+       <p style="margin:0 0 14px;">Hệ thống vừa cập nhật trạng thái xử lý yêu cầu của bạn:</p>
+       <div style="padding:12px 16px;background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;color:#0f172a;font-size:13px;">${escapeHtml(body)}</div>`,
+    );
+
     await this.transporter.sendMail({
       from: this.from,
       to,
-      subject,
+      subject: `[Sổ tay cá nhân] ${subject}`,
       text: body,
+      html,
     });
   }
 }

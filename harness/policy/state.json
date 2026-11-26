@@ -1,6 +1,6 @@
 {
   "phase": "Phase 4 — Implementation",
-  "task": "IM-08 complete; awaiting IM-09 approval",
+  "task": "IM-11 complete; awaiting IM-12 approval",
   "status": "IN_PROGRESS",
   "completed": [
     "Phase 0 Harness Foundation complete",
@@ -15,7 +15,10 @@
     "IM-05 daily tasks, notes, note links, Vietnam midnight status, and pagination verified with api:personal-data",
     "IM-06 weekly monthly recurrence, timetable week queries, month-end adjustment, and transactional series edits/deletes verified with api:scheduling",
     "IM-07 support/unlock requests, 10 MB Cloudinary evidence verification, private viewing URLs, ADMIN decisions, and notification retry verified with api:support",
-    "IM-08 sign-in, registration, activation, resend, refresh, and revoked-session handling verified with web:auth"
+    "IM-08 sign-in, registration, activation, resend, refresh, and revoked-session handling verified with web:auth",
+    "IM-09 personal workspace timetable, tasks, notes, pagination, and note links verified with web:personal-data",
+    "IM-10 support/unlock forms, Cloudinary upload retry, evidence viewer, and protected ADMIN screens verified with web:support",
+    "IM-11 GitHub Actions CI workflow, OpenAPI contract verification, E2E route checks, and npm audit (0 vulnerabilities) verified"
   ],
   "blocked": [],
   "issues": [

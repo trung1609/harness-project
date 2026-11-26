@@ -37,6 +37,7 @@ interface CreateTaskBody {
   scheduledDate?: unknown;
   startTime?: unknown;
   endTime?: unknown;
+  progress?: unknown;
 }
 
 interface UpdateTaskBody {
@@ -99,12 +100,23 @@ export class TasksController {
       );
     }
 
+    if (
+      body.progress !== undefined &&
+      (typeof body.progress !== 'string' ||
+        !VALID_PROGRESS.has(body.progress as TaskProgress))
+    ) {
+      throw new ValidationAppException(
+        'progress must be TODO, IN_PROGRESS, or DONE',
+      );
+    }
+
     try {
       return await this.tasksService.createTask(req.auth!.account.id, {
         title: body.title.trim(),
         scheduledDate: body.scheduledDate,
         startTime: body.startTime,
         endTime: body.endTime,
+        progress: body.progress as TaskProgress | undefined,
       });
     } catch (error: unknown) {
       if (error instanceof InvalidTaskSlotError) {

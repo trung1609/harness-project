@@ -157,6 +157,24 @@ export class SupportService {
     };
   }
 
+  async listOwnSupportRequests(
+    requesterId: string,
+    rawPage?: unknown,
+    rawPageSize?: unknown,
+  ): Promise<PaginatedResult<SupportRequestRecord>> {
+    const pagination = parsePagination(rawPage, rawPageSize);
+    const { items, totalItems } = await this.support.listRequestsByRequester(
+      requesterId,
+      pagination,
+    );
+    return {
+      items,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      totalItems,
+    };
+  }
+
   async recordDecision(
     requestId: string,
     decision: SupportDecisionAction,
