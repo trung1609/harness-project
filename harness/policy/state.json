@@ -1,6 +1,6 @@
 {
   "phase": "Phase 4 — Implementation",
-  "task": "IM-03 complete; awaiting IM-04 approval",
+  "task": "IM-08 complete; awaiting IM-09 approval",
   "status": "IN_PROGRESS",
   "completed": [
     "Phase 0 Harness Foundation complete",
@@ -10,7 +10,12 @@
     "Phase 3 approved by user; implementation plan recorded",
     "Phase 4 approved by user; IM-01 workspace bootstrap verified locally",
     "IM-02 PostgreSQL migrations, Redis configuration, and constraint integration tests verified on disposable Docker services",
-    "IM-03 registration, single-use Redis activation tokens, resend, and notification retry verified with api:activation"
+    "IM-03 registration, single-use Redis activation tokens, resend, and notification retry verified with api:activation",
+    "IM-04 Redis session lifecycle, atomic refresh rotation, CSRF and role guards, and lock/unlock revocation verified with api:sessions",
+    "IM-05 daily tasks, notes, note links, Vietnam midnight status, and pagination verified with api:personal-data",
+    "IM-06 weekly monthly recurrence, timetable week queries, month-end adjustment, and transactional series edits/deletes verified with api:scheduling",
+    "IM-07 support/unlock requests, 10 MB Cloudinary evidence verification, private viewing URLs, ADMIN decisions, and notification retry verified with api:support",
+    "IM-08 sign-in, registration, activation, resend, refresh, and revoked-session handling verified with web:auth"
   ],
   "blocked": [],
   "issues": [

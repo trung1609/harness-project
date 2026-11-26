@@ -6,26 +6,34 @@
     "node": "^22.13.0"
   },
   "scripts": {
-    "dev": "npm run build && npm start",
+    "dev": "npm run build && node --env-file-if-exists=.env dist/main.js",
     "start": "node --env-file-if-exists=.env dist/main.js",
     "db:migrate": "node --env-file-if-exists=.env dist/db/migrate-cli.js",
     "build": "tsc -p tsconfig.json && node -e \"import('node:fs').then(fs => fs.cpSync('src/db/migrations', 'dist/db/migrations', { recursive: true }))\"",
     "lint": "eslint src test --max-warnings 0",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "node --test test/bootstrap.test.mjs",
+    "test": "node --test test/bootstrap.test.mjs test/common/exceptions.test.mjs",
     "test:integration-db": "node --env-file-if-exists=.env --test test/db/integration-db.test.mjs",
-    "test:activation": "node --env-file-if-exists=.env --test test/auth/activation.test.mjs"
+    "test:activation": "node --env-file-if-exists=.env --test test/auth/activation.test.mjs",
+    "test:sessions": "node --env-file-if-exists=.env --test test/auth/sessions.test.mjs",
+    "test:personal-data": "node --env-file-if-exists=.env --test test/tasks/tasks.test.mjs test/notes/notes.test.mjs",
+    "test:scheduling": "node --env-file-if-exists=.env --test test/scheduling/scheduling.test.mjs",
+    "test:support": "node --env-file-if-exists=.env --test test/support/support.test.mjs"
   },
   "dependencies": {
     "@nestjs/common": "12.6.2",
     "@nestjs/core": "12.6.2",
     "@nestjs/platform-express": "12.6.2",
     "ioredis": "^6.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^10.6.1",
     "pg": "^8.23.1",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.23.1"
   }
 }

@@ -109,4 +109,72 @@ export class AccountsRepository {
     );
     return result.rows[0] ? mapAccountRow(result.rows[0]) : null;
   }
+
+  /**
+   * Locks the account and increments session_generation in one atomic update to invalidate existing sessions.
+   */
+  async lockAccount(accountId: string): Promise<AccountRecord | null> {
+    const result = await this.pool.query<AccountRow>(
+      `UPDATE accounts
+       SET locked_at = COALESCE(locked_at, NOW()),
+           session_generation = session_generation + 1,
+           updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, email, password_hash, role, activated_at, locked_at, session_generation`,
+      [accountId],
+    );
+    return result.rows[0] ? mapAccountRow(result.rows[0]) : null;
+  }
+
+  /**
+   * Unlocks the account for future sign-ins while keeping prior session generations invalid.
+   */
+  async unlockAccount(accountId: string): Promise<AccountRecord | null> {
+    const result = await this.pool.query<AccountRow>(
+      `UPDATE accounts
+       SET locked_at = NULL,
+           updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, email, password_hash, role, activated_at, locked_at, session_generation`,
+      [accountId],
+    );
+    return result.rows[0] ? mapAccountRow(result.rows[0]) : null;
+  }
+
+  /**
+   * Lists accounts with safe fields only for ADMIN user management.
+   */
+  async listAccounts(pagination: {
+    limit: number;
+    offset: number;
+  }): Promise<{
+    items: Array<
+      Pick<AccountRecord, 'id' | 'email' | 'role' | 'activatedAt' | 'lockedAt'>
+    >;
+    totalItems: number;
+  }> {
+    const countRes = await this.pool.query<{ total: string }>(
+      `SELECT COUNT(*)::text AS total FROM accounts`,
+    );
+    const totalItems = Number(countRes.rows[0].total);
+
+    const rowsRes = await this.pool.query<AccountRow>(
+      `SELECT id, email, password_hash, role, activated_at, locked_at, session_generation
+       FROM accounts
+       ORDER BY created_at DESC, id ASC
+       LIMIT $1 OFFSET $2`,
+      [pagination.limit, pagination.offset],
+    );
+
+    return {
+      items: rowsRes.rows.map((row) => ({
+        id: row.id,
+        email: row.email,
+        role: row.role,
+        activatedAt: row.activated_at,
+        lockedAt: row.locked_at,
+      })),
+      totalItems,
+    };
+  }
 }
