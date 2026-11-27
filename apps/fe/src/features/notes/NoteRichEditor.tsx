@@ -137,7 +137,7 @@ export function NoteRichEditor({
         suppressContentEditableWarning
         data-placeholder="Bắt đầu viết ghi chú..."
         onInput={(e) => onChange(e.currentTarget.innerHTML)}
-        className="min-h-[62vh] w-full text-base leading-relaxed text-slate-800 focus:outline-none [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-slate-900 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-1.5 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6"
+        className="min-h-[55vh] w-full text-base leading-relaxed text-slate-800 focus:outline-none sm:min-h-[62vh] [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-slate-900 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-1.5 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6"
       />
     </div>
   );

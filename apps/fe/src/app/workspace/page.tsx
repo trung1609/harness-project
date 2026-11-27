@@ -537,6 +537,7 @@ function WorkspaceContent() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur-sm">
+<<<<<<< Updated upstream
         <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-2 px-3 py-3 sm:px-6 sm:py-3.5">
           <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-600/20">
@@ -546,12 +547,23 @@ function WorkspaceContent() {
               <span className="block truncate text-sm font-semibold tracking-tight text-slate-900 sm:text-base">
                 <span className="sm:hidden">Sổ tay cá nhân</span>
                 <span className="hidden sm:inline">Không gian làm việc cá nhân</span>
+=======
+        <div className="mx-auto flex max-w-screen-2xl flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-3.5">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-600/20 sm:h-9 sm:w-9">
+              <BookOpen className="h-4 w-4 sm:h-4.5 sm:w-4.5" strokeWidth={1.75} />
+            </span>
+            <div className="min-w-0">
+              <span className="block truncate text-sm font-semibold tracking-tight text-slate-900 sm:text-base">
+                Không gian làm việc
+>>>>>>> Stashed changes
               </span>
               <span className="hidden text-xs text-slate-500 sm:block">
                 Lịch tuần &amp; ghi chú theo giờ Việt Nam
               </span>
             </div>
           </div>
+<<<<<<< Updated upstream
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
             <button
               type="button"
@@ -561,6 +573,17 @@ function WorkspaceContent() {
               <Plus className="h-4 w-4 shrink-0" strokeWidth={2} />
               <span className="sm:hidden">Thêm</span>
               <span className="hidden sm:inline">Thêm công việc</span>
+=======
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
+            <button
+              type="button"
+              onClick={() => openCreateModalForDate()}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm shadow-blue-600/20 transition-all hover:bg-blue-700 active:scale-[0.98] sm:px-3.5 sm:py-2 sm:text-sm"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2} />
+              <span className="hidden xs:inline sm:inline">Thêm công việc</span>
+              <span className="sm:hidden">Thêm</span>
+>>>>>>> Stashed changes
             </button>
             <Link
               href="/support"
@@ -634,6 +657,7 @@ function WorkspaceContent() {
         </section>
 
         {/* Tabs & filter */}
+<<<<<<< Updated upstream
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div className="w-full overflow-x-auto sm:w-auto">
             <div className="inline-flex min-w-max rounded-xl border border-slate-200 bg-white p-1 shadow-xs">
@@ -697,6 +721,46 @@ function WorkspaceContent() {
                 )}
               </button>
             </div>
+=======
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="inline-flex w-full rounded-xl border border-slate-200 bg-white p-1 shadow-xs sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setTab('timetable')}
+              className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all sm:flex-none sm:px-4 sm:text-sm ${
+                tab === 'timetable'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+            >
+              <CalendarDays className="h-4 w-4" strokeWidth={1.75} />
+              Lịch tuần
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab('tasks')}
+              className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all sm:flex-none sm:px-4 sm:text-sm ${
+                tab === 'tasks'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+            >
+              <CheckSquare className="h-4 w-4" strokeWidth={1.75} />
+              Công việc
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab('notes')}
+              className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all sm:flex-none sm:px-4 sm:text-sm ${
+                tab === 'notes'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }`}
+            >
+              <FileText className="h-4 w-4" strokeWidth={1.75} />
+              Ghi chú
+            </button>
+>>>>>>> Stashed changes
           </div>
 
           {tab !== 'notes' && tab !== 'archive' && (
@@ -769,7 +833,7 @@ function WorkspaceContent() {
                 return (
                   <div
                     key={dateStr}
-                    className={`flex min-h-[280px] flex-col rounded-xl border bg-white p-3.5 transition-all ${
+                    className={`flex min-h-[120px] flex-col rounded-xl border bg-white p-3.5 transition-all md:min-h-[240px] ${
                       isToday
                         ? 'border-blue-500 bg-blue-50/20 ring-2 ring-blue-100'
                         : 'border-slate-200 hover:border-slate-300'
@@ -1265,7 +1329,7 @@ function WorkspaceContent() {
       {/* CREATE TASK MODAL */}
       {createModalOpen && (
         <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-xs">
-          <div className="animate-modal-in w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+          <div className="animate-modal-in max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:p-6">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                 <Circle className="h-4 w-4 text-blue-600" strokeWidth={2.5} />
@@ -1386,7 +1450,7 @@ function WorkspaceContent() {
       {/* EDIT TASK MODAL */}
       {editingTask && (
         <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-xs">
-          <div className="animate-modal-in w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+          <div className="animate-modal-in max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:p-6">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
                 <Pencil className="h-4 w-4 text-blue-600" strokeWidth={2} />
