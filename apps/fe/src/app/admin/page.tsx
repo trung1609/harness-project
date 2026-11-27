@@ -270,7 +270,6 @@ export default function AdminPage() {
     );
   }
 
-<<<<<<< Updated upstream
   if (accessState === 'forbidden') {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
@@ -281,18 +280,6 @@ export default function AdminPage() {
           <p className="mt-2 text-sm text-slate-600">
             Khu vực này chỉ dành cho quản trị viên (ADMIN).
           </p>
-=======
-  return (
-    <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 sm:py-8">
-      <div className="mx-auto max-w-6xl space-y-6 sm:space-y-8">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
-          <div className="flex items-center gap-2.5">
-            <ShieldCheck className="h-6 w-6 text-blue-600" strokeWidth={1.75} />
-            <h1 className="text-xl font-semibold text-slate-900">
-              Quản trị hệ thống (ADMIN)
-            </h1>
-          </div>
->>>>>>> Stashed changes
           <Link
             href="/workspace"
             className="mt-4 inline-flex rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
