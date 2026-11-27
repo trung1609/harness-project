@@ -12,11 +12,14 @@ import {
   ChevronRight,
   Circle,
   Clock,
+  Columns3,
   FileText,
   Filter,
+  GripVertical,
   KeyRound,
   LifeBuoy,
   Link2,
+  List,
   LogOut,
   Pencil,
   PlayCircle,
@@ -178,10 +181,16 @@ function WorkspaceContent() {
   // Tasks list state
   const [tasksPage, setTasksPage] = useState(1);
   const [tasksPageSize, setTasksPageSize] = useState<PageSize>(10);
+  const [tasksViewMode, setTasksViewMode] = useState<'list' | 'board'>('list');
   const [tasksList, setTasksList] = useState<{ items: TaskItem[]; totalItems: number }>({
     items: [],
     totalItems: 0,
   });
+
+  // Drag & drop state
+  const [draggingTask, setDraggingTask] = useState<TaskItem | null>(null);
+  const [dragOverDate, setDragOverDate] = useState<string | null>(null);
+  const [dragOverProgress, setDragOverProgress] = useState<TaskProgress | null>(null);
 
   // Notes state
   const [notesPage, setNotesPage] = useState(1);
@@ -420,6 +429,42 @@ function WorkspaceContent() {
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Không thể cập nhật trạng thái.');
     }
+  }
+
+  async function handleDropTaskOnDate(targetDate: string) {
+    const task = draggingTask;
+    setDragOverDate(null);
+    setDraggingTask(null);
+    if (!task || task.scheduledDate === targetDate) return;
+
+    // Optimistic update on weekly view for snappy drag & drop feedback
+    setWeekData((prev) =>
+      prev
+        ? {
+            ...prev,
+            tasks: prev.tasks.map((t) =>
+              t.id === task.id ? { ...t, scheduledDate: targetDate } : t,
+            ),
+          }
+        : prev,
+    );
+
+    try {
+      await tasksApi.updateTask(task.id, { scheduledDate: targetDate });
+      toast.success(`Đã chuyển "${task.title}" sang ngày ${formatDisplayDate(targetDate)}.`);
+      await refreshTasksViews();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Không thể di chuyển công việc.');
+      await refreshTasksViews();
+    }
+  }
+
+  async function handleDropTaskOnProgress(targetProgress: TaskProgress) {
+    const task = draggingTask;
+    setDragOverProgress(null);
+    setDraggingTask(null);
+    if (!task || task.progress === targetProgress) return;
+    await handleProgressChange(task.id, targetProgress);
   }
 
   async function handleConfirmDelete() {
@@ -769,10 +814,34 @@ function WorkspaceContent() {
                 return (
                   <div
                     key={dateStr}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      if (draggingTask && draggingTask.scheduledDate !== dateStr) {
+                        setDragOverDate(dateStr);
+                      }
+                    }}
+                    onDragEnter={(e) => {
+                      e.preventDefault();
+                      if (draggingTask && draggingTask.scheduledDate !== dateStr) {
+                        setDragOverDate(dateStr);
+                      }
+                    }}
+                    onDragLeave={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        setDragOverDate((prev) => (prev === dateStr ? null : prev));
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      void handleDropTaskOnDate(dateStr);
+                    }}
                     className={`flex min-h-[120px] flex-col rounded-xl border bg-white p-3.5 transition-all md:min-h-[240px] ${
-                      isToday
-                        ? 'border-blue-500 bg-blue-50/20 ring-2 ring-blue-100'
-                        : 'border-slate-200 hover:border-slate-300'
+                      dragOverDate === dateStr
+                        ? 'border-blue-500 bg-blue-50/50 ring-2 ring-blue-400/50'
+                        : isToday
+                          ? 'border-blue-500 bg-blue-50/20 ring-2 ring-blue-100'
+                          : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <div className="mb-3 flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -802,22 +871,49 @@ function WorkspaceContent() {
                     </div>
 
                     {dayTasks.length === 0 ? (
-                      <div className="flex flex-1 flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50/50 p-3 text-center">
-                        <p className="text-xs text-slate-400">Không có lịch</p>
+                      <div
+                        className={`flex flex-1 flex-col items-center justify-center rounded-lg border border-dashed p-3 text-center transition-colors ${
+                          dragOverDate === dateStr
+                            ? 'border-blue-400 bg-blue-50/70'
+                            : 'border-slate-200 bg-slate-50/50'
+                        }`}
+                      >
+                        <p className="text-xs text-slate-400">
+                          {dragOverDate === dateStr ? 'Thả công việc vào đây' : 'Không có lịch'}
+                        </p>
                       </div>
                     ) : (
                       <ul className="space-y-2.5">
                         {dayTasks.map((task) => (
                           <li
                             key={task.id}
-                            className={`rounded-lg border border-slate-200 border-l-4 ${statusAccentBorder(
+                            draggable
+                            onDragStart={(e) => {
+                              setDraggingTask(task);
+                              e.dataTransfer.effectAllowed = 'move';
+                              e.dataTransfer.setData('text/plain', task.id);
+                            }}
+                            onDragEnd={() => {
+                              setDraggingTask(null);
+                              setDragOverDate(null);
+                              setDragOverProgress(null);
+                            }}
+                            className={`group cursor-grab rounded-lg border border-slate-200 border-l-4 active:cursor-grabbing ${statusAccentBorder(
                               task.displayStatus,
-                            )} bg-white p-3 text-xs shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-md`}
+                            )} bg-white p-3 text-xs shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                              draggingTask?.id === task.id ? 'opacity-50 ring-2 ring-blue-400' : ''
+                            }`}
                           >
                             <div className="flex items-start justify-between gap-1.5">
-                              <p className="font-semibold leading-snug text-slate-900">
-                                {task.title}
-                              </p>
+                              <div className="flex min-w-0 items-start gap-1">
+                                <GripVertical
+                                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-300 transition-colors group-hover:text-slate-400"
+                                  strokeWidth={1.75}
+                                />
+                                <p className="font-semibold leading-snug text-slate-900">
+                                  {task.title}
+                                </p>
+                              </div>
                               <div className="flex shrink-0 items-center gap-0.5">
                                 <button
                                   type="button"
@@ -926,7 +1022,33 @@ function WorkspaceContent() {
               <h1 className="text-base font-semibold text-slate-900">
                 Danh sách công việc ({tasksList.totalItems})
               </h1>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setTasksViewMode('list')}
+                    className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                      tasksViewMode === 'list'
+                        ? 'bg-blue-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <List className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    Danh sách
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTasksViewMode('board')}
+                    className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                      tasksViewMode === 'board'
+                        ? 'bg-blue-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Columns3 className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    Bảng kéo thả
+                  </button>
+                </div>
                 <select
                   aria-label="Số dòng mỗi trang"
                   value={tasksPageSize}
@@ -949,6 +1071,122 @@ function WorkspaceContent() {
               <p className="py-10 text-center text-sm text-slate-500">
                 Chưa có công việc nào phù hợp.
               </p>
+            ) : tasksViewMode === 'board' ? (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                {PROGRESS_OPTIONS.map((col) => {
+                  const colTasks = visibleListTasks.filter((t) => t.progress === col.value);
+                  const isOver = dragOverProgress === col.value;
+                  return (
+                    <div
+                      key={col.value}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                        if (draggingTask && draggingTask.progress !== col.value) {
+                          setDragOverProgress(col.value);
+                        }
+                      }}
+                      onDragEnter={(e) => {
+                        e.preventDefault();
+                        if (draggingTask && draggingTask.progress !== col.value) {
+                          setDragOverProgress(col.value);
+                        }
+                      }}
+                      onDragLeave={(e) => {
+                        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                          setDragOverProgress((prev) => (prev === col.value ? null : prev));
+                        }
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        void handleDropTaskOnProgress(col.value);
+                      }}
+                      className={`flex min-h-[240px] flex-col rounded-xl border p-3.5 transition-all ${
+                        isOver
+                          ? 'border-blue-500 bg-blue-50/50 ring-2 ring-blue-400/50'
+                          : 'border-slate-200 bg-slate-50/60'
+                      }`}
+                    >
+                      <div className="mb-3 flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+                        <span className="text-sm font-semibold text-slate-900">
+                          {col.fullLabel}
+                        </span>
+                        <span className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
+                          {colTasks.length}
+                        </span>
+                      </div>
+
+                      {colTasks.length === 0 ? (
+                        <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-slate-200 bg-white/60 p-4 text-center text-xs text-slate-400">
+                          {isOver ? 'Thả công việc vào đây' : 'Kéo công việc vào cột này'}
+                        </div>
+                      ) : (
+                        <ul className="space-y-2.5">
+                          {colTasks.map((task) => (
+                            <li
+                              key={task.id}
+                              draggable
+                              onDragStart={(e) => {
+                                setDraggingTask(task);
+                                e.dataTransfer.effectAllowed = 'move';
+                                e.dataTransfer.setData('text/plain', task.id);
+                              }}
+                              onDragEnd={() => {
+                                setDraggingTask(null);
+                                setDragOverDate(null);
+                                setDragOverProgress(null);
+                              }}
+                              className={`group cursor-grab rounded-lg border border-slate-200 border-l-4 active:cursor-grabbing ${statusAccentBorder(
+                                task.displayStatus,
+                              )} bg-white p-3 text-xs shadow-2xs transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                                draggingTask?.id === task.id ? 'opacity-50 ring-2 ring-blue-400' : ''
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex min-w-0 items-start gap-1.5">
+                                  <GripVertical
+                                    className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-300 group-hover:text-slate-400"
+                                    strokeWidth={1.75}
+                                  />
+                                  <p className="font-semibold text-slate-900">{task.title}</p>
+                                </div>
+                                <div className="flex shrink-0 items-center gap-0.5">
+                                  <button
+                                    type="button"
+                                    aria-label="Sửa"
+                                    onClick={() => openEditTaskModal(task)}
+                                    className="rounded p-1 text-slate-400 hover:bg-blue-50 hover:text-blue-600"
+                                  >
+                                    <Pencil className="h-3 w-3" strokeWidth={1.75} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    aria-label="Xóa"
+                                    onClick={() =>
+                                      setDeleteTarget({
+                                        kind: 'task',
+                                        id: task.id,
+                                        label: task.title,
+                                      })
+                                    }
+                                    className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+                                  >
+                                    <Trash2 className="h-3 w-3" strokeWidth={1.75} />
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-slate-500">
+                                <Clock className="h-3 w-3 text-slate-400" strokeWidth={1.75} />
+                                {formatDisplayDate(task.scheduledDate)} · {task.startTime.slice(0, 5)}–{task.endTime.slice(0, 5)}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
               <ul className="divide-y divide-slate-100">
                 {visibleListTasks.map((task) => (
